@@ -1,0 +1,40 @@
+@extends('layouts.app')
+
+@section('content')
+    <div class="mb-4">
+        <div>
+            <h1 class="h2 fw-semibold">Access Management</h1>
+            <p class="text-secondary">Manage platform users, assign roles, and connect permissions.</p>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <a class="col-md-4 text-decoration-none" href="{{ route('users.index') }}">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+            <p class="small fw-medium text-secondary">Users</p>
+            <p class="display-6 fw-semibold text-dark">{{ $userCount }}</p>
+            <p class="mb-0 text-secondary">Create accounts and assign roles.</p>
+                </div>
+            </div>
+        </a>
+        <a class="col-md-4 text-decoration-none" href="{{ route('roles.index') }}">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+            <p class="small fw-medium text-secondary">Roles</p>
+            <p class="display-6 fw-semibold text-dark">{{ $roleCount }}</p>
+            <p class="mb-0 text-secondary">Group permissions by responsibility.</p>
+                </div>
+            </div>
+        </a>
+        <a class="col-md-4 text-decoration-none" href="{{ route('permissions.index') }}">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+            <p class="small fw-medium text-secondary">Permissions</p>
+            <p class="display-6 fw-semibold text-dark">{{ $permissionCount }}</p>
+            <p class="mb-0 text-secondary">Define access capabilities.</p>
+                </div>
+            </div>
+        </a>
+    </div>
+@endsection
