@@ -228,12 +228,15 @@
             background: #fff;
             border: 1px solid var(--vitasync-line);
             border-radius: 1rem;
+            display: block;
             box-shadow: 0 12px 32px rgba(16, 24, 40, .06);
+            max-width: none !important;
             overflow: hidden;
+            width: 100%;
         }
 
         .form-section {
-            padding: 1.35rem;
+            padding: 1.5rem;
         }
 
         .form-section + .form-section {
@@ -266,6 +269,16 @@
             gap: .65rem;
             justify-content: flex-end;
             padding: 1rem 1.35rem;
+        }
+
+        @media (min-width: 992px) {
+            .form-section {
+                padding: 1.75rem 2rem;
+            }
+
+            .form-actions {
+                padding: 1.1rem 2rem;
+            }
         }
 
         .choice-card {

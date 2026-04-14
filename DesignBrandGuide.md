@@ -216,6 +216,15 @@ Chronological clarity
 - Inline validation
 - Autosave enabled
 - Avoid long scrolling forms
+- Use the shared sectioned form shell for create/edit screens.
+- Keep forms spacious on wide screens, but group fields into readable sections so related controls stay visually connected.
+- Each major section must have a clear title and short guidance text.
+- Put final submit/cancel controls in a visually distinct footer action bar.
+- Use choice cards for checkbox groups such as roles and permissions.
+- Role assignment should appear before direct permission assignment.
+- Direct permissions must be framed as exceptions, not the default access model.
+- Keep labels visible above fields and keep help text close to the field it explains.
+- Preserve high contrast for labels, helper text, borders, and invalid states.
 
 ---
 
