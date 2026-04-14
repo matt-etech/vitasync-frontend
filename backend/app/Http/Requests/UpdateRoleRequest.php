@@ -24,8 +24,9 @@ class UpdateRoleRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255', Rule::unique('roles', 'name')->ignore($role)],
             'description' => ['nullable', 'string', 'max:1000'],
+            'is_active' => ['nullable', 'boolean'],
             'permissions' => ['array'],
-            'permissions.*' => ['integer', Rule::exists('permissions', 'id')],
+            'permissions.*' => ['integer', Rule::exists('permissions', 'id')->where('is_active', true)],
         ];
     }
 }

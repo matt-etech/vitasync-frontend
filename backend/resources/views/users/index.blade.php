@@ -11,7 +11,7 @@
 @section('content')
     <x-page-header title="Users" description="Create accounts and assign operational roles.">
         <x-slot:action>
-            <a class="btn btn-primary" href="{{ route('users.create') }}"><i class="fa-solid fa-plus me-1"></i>New user</a>
+            <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#createUserModal"><i class="fa-solid fa-plus me-1"></i>New user</button>
         </x-slot:action>
     </x-page-header>
 
@@ -56,11 +56,11 @@
                         <td><span class="badge text-bg-{{ $user->is_active ? 'success' : 'secondary' }}">{{ $user->is_active ? 'Active' : 'Inactive' }}</span></td>
                         <td>
                             <div class="d-flex flex-wrap gap-2">
-                                <a class="btn btn-sm btn-action" href="{{ route('users.edit', $user) }}"><i class="fa-solid fa-pen"></i>Edit</a>
-                                <form method="POST" action="{{ route('users.destroy', $user) }}" onsubmit="return confirm('Delete this user?');">
+                                <button class="btn btn-sm btn-action" type="button" data-bs-toggle="modal" data-bs-target="#editUserModal{{ $user->id }}"><i class="fa-solid fa-pen"></i>Edit</button>
+                                <form method="POST" action="{{ route('users.destroy', $user) }}" data-confirm data-confirm-title="{{ $user->is_active ? 'Disable user?' : 'Activate user?' }}" data-confirm-text="{{ $user->is_active ? 'Disabled users cannot be used for active operations.' : 'This user will become active again.' }}" data-confirm-button="{{ $user->is_active ? 'Yes, disable' : 'Yes, activate' }}">
                                     @csrf
                                     @method('DELETE')
-                                    <button class="btn btn-sm btn-action btn-action-danger" type="submit"><i class="fa-solid fa-trash"></i>Delete</button>
+                                    <button class="btn btn-sm btn-action {{ $user->is_active ? 'btn-action-danger' : 'btn-action-primary' }}" type="submit"><i class="fa-solid {{ $user->is_active ? 'fa-ban' : 'fa-check' }}"></i>{{ $user->is_active ? 'Disable' : 'Activate' }}</button>
                                 </form>
                             </div>
                         </td>
@@ -74,4 +74,37 @@
         </table>
         </div>
     </div>
+
+    <div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <form class="modal-content" method="POST" action="{{ route('users.store') }}">
+                @csrf
+                <div class="modal-header">
+                    <h2 class="modal-title h5" id="createUserModalLabel">New user</h2>
+                    <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    @include('users.partials.form', ['user' => $newUser, 'homes' => $homes, 'roles' => $roles, 'permissions' => $permissions, 'selectedRoles' => [], 'selectedPermissions' => [], 'passwordRequired' => true, 'submitLabel' => 'Create user'])
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @foreach ($users as $editUser)
+        <div class="modal fade" id="editUserModal{{ $editUser->id }}" tabindex="-1" aria-labelledby="editUserModalLabel{{ $editUser->id }}" aria-hidden="true">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                <form class="modal-content" method="POST" action="{{ route('users.update', $editUser) }}">
+                    @csrf
+                    @method('PUT')
+                    <div class="modal-header">
+                        <h2 class="modal-title h5" id="editUserModalLabel{{ $editUser->id }}">Edit {{ $editUser->name }}</h2>
+                        <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        @include('users.partials.form', ['user' => $editUser, 'homes' => $homes, 'roles' => $roles, 'permissions' => $permissions, 'selectedRoles' => $editUser->roles->pluck('id')->all(), 'selectedPermissions' => $editUser->permissions->pluck('id')->all(), 'passwordRequired' => false, 'submitLabel' => 'Update user'])
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endforeach
 @endsection

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Client;
 use App\Models\Home;
 use App\Models\Permission;
 use App\Models\Role;
@@ -17,6 +18,7 @@ class DashboardController extends Controller
             'roleCount' => Role::count(),
             'permissionCount' => Permission::count(),
             'homeCount' => Home::count(),
+            'clientCount' => Client::count(),
         ]);
     }
 }

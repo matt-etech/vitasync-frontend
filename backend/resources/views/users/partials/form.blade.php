@@ -114,6 +114,6 @@
 
     <div class="form-actions">
         <button class="btn btn-primary fw-semibold" type="submit">{{ $submitLabel }}</button>
-        <a class="btn btn-outline-secondary fw-semibold" href="{{ route('users.index') }}">Cancel</a>
+        <button class="btn btn-outline-secondary fw-semibold" type="button" data-bs-dismiss="modal">Cancel</button>
     </div>
 </div>

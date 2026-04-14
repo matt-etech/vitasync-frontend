@@ -20,13 +20,15 @@ class PermissionController extends Controller
     public function create(): View
     {
         return view('permissions.create', [
-            'permission' => new Permission(),
+            'permission' => new Permission(['is_active' => true]),
         ]);
     }
 
     public function store(StorePermissionRequest $request): RedirectResponse
     {
-        Permission::create($request->validated());
+        Permission::create(array_merge($request->safe()->only(['name', 'description']), [
+            'is_active' => $request->boolean('is_active', true),
+        ]));
 
         return redirect()->route('permissions.index')->with('status', 'Permission created.');
     }
@@ -40,15 +42,17 @@ class PermissionController extends Controller
 
     public function update(UpdatePermissionRequest $request, Permission $permission): RedirectResponse
     {
-        $permission->update($request->validated());
+        $permission->update(array_merge($request->safe()->only(['name', 'description']), [
+            'is_active' => $request->boolean('is_active'),
+        ]));
 
         return redirect()->route('permissions.index')->with('status', 'Permission updated.');
     }
 
     public function destroy(Permission $permission): RedirectResponse
     {
-        $permission->delete();
+        $permission->update(['is_active' => ! $permission->is_active]);
 
-        return redirect()->route('permissions.index')->with('status', 'Permission deleted.');
+        return redirect()->route('permissions.index')->with('status', $permission->is_active ? 'Permission activated.' : 'Permission disabled.');
     }
 }

@@ -19,6 +19,7 @@ class StorePermissionRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255', 'unique:permissions,name'],
             'description' => ['nullable', 'string', 'max:1000'],
+            'is_active' => ['nullable', 'boolean'],
         ];
     }
 }

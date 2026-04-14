@@ -59,5 +59,16 @@
             </div>
         </a>
         @endif
+        @if (auth()->user()->hasPermission('clients.manage'))
+        <a class="col-md-3 text-decoration-none" href="{{ route('clients.index') }}">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+            <p class="small fw-medium text-secondary">Clients</p>
+            <p class="display-6 fw-semibold text-dark">{{ $clientCount }}</p>
+            <p class="mb-0 text-secondary">Onboard and manage care clients.</p>
+                </div>
+            </div>
+        </a>
+        @endif
     </div>
 @endsection

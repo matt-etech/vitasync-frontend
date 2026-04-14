@@ -49,7 +49,8 @@ class AuthAndAccessManagementTest extends TestCase
             ->assertSee('User Management')
             ->assertSee('Users')
             ->assertSee('Roles')
-            ->assertSee('Permissions');
+            ->assertSee('Permissions')
+            ->assertDontSee('Clients');
     }
 
     public function test_role_crud_links_permissions(): void

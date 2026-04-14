@@ -18,6 +18,12 @@ class UserController extends Controller
     {
         return view('users.index', [
             'users' => User::with(['home', 'roles', 'permissions'])->orderBy('name')->get(),
+            'newUser' => new User(['is_active' => true]),
+            'homes' => Home::where('status', 'active')->orderBy('name')->get(),
+            'roles' => Role::where('is_active', true)->orderBy('name')->get(),
+            'permissions' => Permission::where('is_active', true)->orderBy('name')->get(),
+            'selectedRoles' => [],
+            'selectedPermissions' => [],
         ]);
     }
 
@@ -25,9 +31,9 @@ class UserController extends Controller
     {
         return view('users.create', [
             'user' => new User(),
-            'homes' => Home::orderBy('name')->get(),
-            'roles' => Role::orderBy('name')->get(),
-            'permissions' => Permission::orderBy('name')->get(),
+            'homes' => Home::where('status', 'active')->orderBy('name')->get(),
+            'roles' => Role::where('is_active', true)->orderBy('name')->get(),
+            'permissions' => Permission::where('is_active', true)->orderBy('name')->get(),
             'selectedRoles' => [],
             'selectedPermissions' => [],
         ]);
@@ -52,9 +58,9 @@ class UserController extends Controller
 
         return view('users.edit', [
             'user' => $user,
-            'homes' => Home::orderBy('name')->get(),
-            'roles' => Role::orderBy('name')->get(),
-            'permissions' => Permission::orderBy('name')->get(),
+            'homes' => Home::where('status', 'active')->orWhere('id', $user->home_id)->orderBy('name')->get(),
+            'roles' => Role::where('is_active', true)->orWhereIn('id', $user->roles->pluck('id'))->orderBy('name')->get(),
+            'permissions' => Permission::where('is_active', true)->orWhereIn('id', $user->permissions->pluck('id'))->orderBy('name')->get(),
             'selectedRoles' => $user->roles->pluck('id')->all(),
             'selectedPermissions' => $user->permissions->pluck('id')->all(),
         ]);
@@ -79,8 +85,8 @@ class UserController extends Controller
 
     public function destroy(User $user): RedirectResponse
     {
-        $user->delete();
+        $user->update(['is_active' => ! $user->is_active]);
 
-        return redirect()->route('users.index')->with('status', 'User deleted.');
+        return redirect()->route('users.index')->with('status', $user->is_active ? 'User activated.' : 'User disabled.');
     }
 }

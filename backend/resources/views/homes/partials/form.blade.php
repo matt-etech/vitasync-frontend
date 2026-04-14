@@ -103,6 +103,6 @@
 
     <div class="d-flex flex-wrap gap-2 mt-4">
         <button class="btn btn-primary fw-semibold" type="submit">{{ $submitLabel }}</button>
-        <a class="btn btn-outline-secondary fw-semibold" href="{{ route('homes.index') }}">Cancel</a>
+        <button class="btn btn-outline-secondary fw-semibold" type="button" data-bs-dismiss="modal">Cancel</button>
     </div>
 </div>

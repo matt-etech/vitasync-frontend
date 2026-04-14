@@ -48,6 +48,14 @@ class Home extends Model
         return $this->hasMany(User::class);
     }
 
+    /**
+     * @return HasMany<Client, $this>
+     */
+    public function clients(): HasMany
+    {
+        return $this->hasMany(Client::class);
+    }
+
     public function logoUrl(): ?string
     {
         if ($this->logo_path === null) {

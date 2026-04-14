@@ -18,6 +18,8 @@ class HomeController extends Controller
     {
         return view('homes.index', [
             'homes' => Home::with('manager')->withCount('users')->orderBy('name')->get(),
+            'newHome' => new Home(['country' => 'United Kingdom', 'status' => 'active']),
+            'managers' => User::where('is_active', true)->orderBy('name')->get(),
         ]);
     }
 
@@ -25,7 +27,7 @@ class HomeController extends Controller
     {
         return view('homes.create', [
             'home' => new Home(['country' => 'United Kingdom', 'status' => 'active']),
-            'managers' => User::orderBy('name')->get(),
+            'managers' => User::where('is_active', true)->orderBy('name')->get(),
         ]);
     }
 
@@ -47,7 +49,7 @@ class HomeController extends Controller
     {
         return view('homes.edit', [
             'home' => $home,
-            'managers' => User::orderBy('name')->get(),
+            'managers' => User::where('is_active', true)->orderBy('name')->get(),
         ]);
     }
 
@@ -76,13 +78,9 @@ class HomeController extends Controller
 
     public function destroy(Home $home): RedirectResponse
     {
-        if ($home->logo_path !== null) {
-            Storage::disk('public')->delete($home->logo_path);
-        }
+        $home->update(['status' => $home->status === 'active' ? 'inactive' : 'active']);
 
-        $home->delete();
-
-        return redirect()->route('homes.index')->with('status', 'Home deleted.');
+        return redirect()->route('homes.index')->with('status', $home->status === 'active' ? 'Home activated.' : 'Home disabled.');
     }
 
     private function syncManagerMembership(Home $home): void

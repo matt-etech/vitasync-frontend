@@ -24,6 +24,7 @@ class UpdatePermissionRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255', Rule::unique('permissions', 'name')->ignore($permission)],
             'description' => ['nullable', 'string', 'max:1000'],
+            'is_active' => ['nullable', 'boolean'],
         ];
     }
 }

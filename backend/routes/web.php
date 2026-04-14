@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\ClientAssessmentController;
+use App\Http\Controllers\ClientController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\HomeUserController;
@@ -25,6 +27,14 @@ Route::middleware('auth')->group(function (): void {
     Route::resource('homes', HomeController::class)->except(['show'])->middleware('permission:homes.manage');
     Route::prefix('homes/{home}')->name('homes.')->middleware('permission:home_users.manage')->group(function (): void {
         Route::resource('users', HomeUserController::class)->except(['show'])->names('users');
+    });
+    Route::resource('clients', ClientController::class)->except(['show'])->middleware('permission:clients.manage');
+    Route::prefix('clients/{client}/assessment')->name('clients.assessments.')->middleware('permission:clients.manage')->group(function (): void {
+        Route::get('/', [ClientAssessmentController::class, 'edit'])->name('edit');
+        Route::put('/', [ClientAssessmentController::class, 'update'])->name('update');
+        Route::post('/submit', [ClientAssessmentController::class, 'submit'])->name('submit');
+        Route::post('/approve', [ClientAssessmentController::class, 'approve'])->name('approve');
+        Route::post('/decline', [ClientAssessmentController::class, 'decline'])->name('decline');
     });
 
     Route::resource('roles', RoleController::class)->except(['show'])->middleware('permission:roles.manage');

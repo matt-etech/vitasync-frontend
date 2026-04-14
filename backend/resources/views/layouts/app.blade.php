@@ -304,6 +304,48 @@
             margin-top: .2rem;
         }
 
+        .assessment-layout {
+            align-items: flex-start;
+            display: grid;
+            gap: 1rem;
+        }
+
+        .assessment-steps {
+            background: #fff;
+            border: 1px solid var(--vitasync-line);
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px rgba(16, 24, 40, .05);
+            padding: 1rem;
+        }
+
+        .assessment-steps a {
+            border: 1px solid transparent;
+            border-radius: .5rem;
+            color: #344054;
+            display: block;
+            font-weight: 700;
+            padding: .65rem .75rem;
+            text-decoration: none;
+        }
+
+        .assessment-steps a:hover,
+        .assessment-steps a:focus {
+            background: #ecfdf9;
+            border-color: #99f6e4;
+            color: var(--vitasync-teal-dark);
+        }
+
+        @media (min-width: 1200px) {
+            .assessment-layout {
+                grid-template-columns: 18rem minmax(0, 1fr);
+            }
+
+            .assessment-steps {
+                position: sticky;
+                top: 1rem;
+            }
+        }
+
         .breadcrumb-shell {
             color: #475467;
             font-size: .9rem;
@@ -427,6 +469,18 @@
             border-color: var(--vitasync-teal-dark);
             color: #fff;
         }
+
+        .modal-content {
+            border: 1px solid var(--vitasync-line);
+            border-radius: 1rem;
+            box-shadow: 0 28px 70px rgba(16, 24, 40, .22);
+        }
+
+        .modal-header,
+        .modal-footer {
+            background: #f8fafc;
+            border-color: var(--vitasync-line);
+        }
     </style>
 </head>
 <body>
@@ -519,6 +573,22 @@
                                     </ul>
                                 </li>
                                 @endif
+                                @if (auth()->user()->hasPermission('clients.manage'))
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle {{ request()->routeIs('clients.*') ? 'active' : '' }}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fa-solid fa-briefcase-medical me-2"></i>Care
+                                    </a>
+                                    <ul class="dropdown-menu mega-menu">
+                                        <li><span class="dropdown-header section-kicker">Care Operations</span></li>
+                                        <li>
+                                            <a class="dropdown-item d-flex gap-2" href="{{ route('clients.index') }}">
+                                                <span class="menu-icon"><i class="fa-solid fa-user-group"></i></span>
+                                                <span><span class="d-block fw-bold">Clients</span><span class="d-block text-secondary small">Onboard and manage client records.</span></span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </li>
+                                @endif
                             </ul>
                         </div>
                     </div>
@@ -549,8 +619,35 @@
     <script src="{{ asset('vendor/datatables/js/buttons.bootstrap5.min.js') }}"></script>
     <script src="{{ asset('vendor/datatables/js/buttons.html5.min.js') }}"></script>
     <script src="{{ asset('vendor/datatables/js/buttons.print.min.js') }}"></script>
+    <script src="{{ asset('vendor/sweetalert2/sweetalert2.all.min.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('form[data-confirm]').forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (form.dataset.confirmed === 'true') {
+                        return;
+                    }
+
+                    event.preventDefault();
+
+                    Swal.fire({
+                        title: form.dataset.confirmTitle || 'Are you sure?',
+                        text: form.dataset.confirmText || 'Please confirm this action.',
+                        icon: form.dataset.confirmIcon || 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: form.dataset.confirmButton || 'Yes, continue',
+                        cancelButtonText: 'Cancel',
+                        confirmButtonColor: '#134e4a',
+                        cancelButtonColor: '#667085',
+                    }).then(function (result) {
+                        if (result.isConfirmed) {
+                            form.dataset.confirmed = 'true';
+                            form.submit();
+                        }
+                    });
+                });
+            });
+
             document.querySelectorAll('[data-vitasync-datatable]').forEach(function (table) {
                 const exportTitle = table.getAttribute('data-export-title') || document.title;
 

@@ -49,17 +49,21 @@ class User extends Authenticatable
     public function effectivePermissions()
     {
         return $this->permissions
+            ->where('is_active', true)
             ->merge($this->roles->flatMap->permissions)
+            ->where('is_active', true)
             ->unique('id')
             ->values();
     }
 
     public function hasPermission(string $permissionName): bool
     {
-        return $this->permissions()->where('name', $permissionName)->exists()
+        return $this->is_active !== false && ($this->permissions()->where('name', $permissionName)->where('is_active', true)->exists()
             || $this->roles()
+                ->where('is_active', true)
                 ->whereHas('permissions', fn ($query) => $query->where('name', $permissionName))
-                ->exists();
+                ->whereHas('permissions', fn ($query) => $query->where('is_active', true))
+                ->exists());
     }
 
     /**

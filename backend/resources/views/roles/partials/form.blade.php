@@ -9,6 +9,12 @@
         <textarea class="form-control focus-ring-brand" id="description" name="description" rows="3">{{ old('description', $role->description) }}</textarea>
     </div>
 
+    <label class="form-check mb-3">
+        <input type="hidden" name="is_active" value="0">
+        <input class="form-check-input" name="is_active" type="checkbox" value="1" @checked((bool) old('is_active', $role->is_active ?? true))>
+        <span class="form-check-label">Active role</span>
+    </label>
+
     <fieldset class="mt-4">
         <legend class="h6">Permissions</legend>
         <div class="row g-3">
@@ -32,6 +38,6 @@
 
     <div class="d-flex flex-wrap gap-2 mt-4">
         <button class="btn btn-primary fw-semibold" type="submit">{{ $submitLabel }}</button>
-        <a class="btn btn-outline-secondary fw-semibold" href="{{ route('roles.index') }}">Cancel</a>
+        <button class="btn btn-outline-secondary fw-semibold" type="button" data-bs-dismiss="modal">Cancel</button>
     </div>
 </div>

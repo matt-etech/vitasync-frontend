@@ -19,6 +19,11 @@ class HomeUserController extends Controller
         return view('homes.users.index', [
             'home' => $home,
             'users' => $home->users()->with(['roles', 'permissions'])->orderBy('name')->get(),
+            'newUser' => new User(['home_id' => $home->id, 'is_active' => true]),
+            'roles' => Role::where('is_active', true)->with('permissions')->orderBy('name')->get(),
+            'permissions' => Permission::where('is_active', true)->orderBy('name')->get(),
+            'selectedRoles' => [],
+            'selectedPermissions' => [],
         ]);
     }
 
@@ -27,8 +32,8 @@ class HomeUserController extends Controller
         return view('homes.users.create', [
             'home' => $home,
             'user' => new User(['home_id' => $home->id, 'is_active' => true]),
-            'roles' => Role::with('permissions')->orderBy('name')->get(),
-            'permissions' => Permission::orderBy('name')->get(),
+            'roles' => Role::where('is_active', true)->with('permissions')->orderBy('name')->get(),
+            'permissions' => Permission::where('is_active', true)->orderBy('name')->get(),
             'selectedRoles' => [],
             'selectedPermissions' => [],
         ]);
@@ -57,8 +62,8 @@ class HomeUserController extends Controller
         return view('homes.users.edit', [
             'home' => $home,
             'user' => $user,
-            'roles' => Role::with('permissions')->orderBy('name')->get(),
-            'permissions' => Permission::orderBy('name')->get(),
+            'roles' => Role::where('is_active', true)->orWhereIn('id', $user->roles->pluck('id'))->with('permissions')->orderBy('name')->get(),
+            'permissions' => Permission::where('is_active', true)->orWhereIn('id', $user->permissions->pluck('id'))->orderBy('name')->get(),
             'selectedRoles' => $user->roles->pluck('id')->all(),
             'selectedPermissions' => $user->permissions->pluck('id')->all(),
         ]);
@@ -92,9 +97,9 @@ class HomeUserController extends Controller
             $home->update(['manager_id' => null]);
         }
 
-        $user->delete();
+        $user->update(['is_active' => ! $user->is_active]);
 
-        return redirect()->route('homes.users.index', $home)->with('status', 'Home user deleted.');
+        return redirect()->route('homes.users.index', $home)->with('status', $user->is_active ? 'Home user activated.' : 'Home user disabled.');
     }
 
     private function ensureUserBelongsToHome(Home $home, User $user): void

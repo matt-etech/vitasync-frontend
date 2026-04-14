@@ -216,6 +216,7 @@ Chronological clarity
 - Inline validation
 - Autosave enabled
 - Avoid long scrolling forms
+- Management create and edit actions must open in Bootstrap modals from the index page unless the workflow is a long clinical process, such as client onboarding assessments.
 - Use the shared sectioned form shell for create/edit screens.
 - Keep forms spacious on wide screens, but group fields into readable sections so related controls stay visually connected.
 - Each major section must have a clear title and short guidance text.
@@ -225,6 +226,25 @@ Chronological clarity
 - Direct permissions must be framed as exceptions, not the default access model.
 - Keep labels visible above fields and keep help text close to the field it explains.
 - Preserve high contrast for labels, helper text, borders, and invalid states.
+- Modal forms must use clear titles, scrollable bodies for long forms, and a visible cancel control.
+- Do not use browser confirmation prompts. All confirmations must use the local SweetAlert2 asset and the shared confirmation pattern.
+- Destructive-looking actions in management screens should be disable/activate actions, not hard delete actions.
+- Disabled records may remain visible only on the management page where they can be activated or deactivated.
+- Disabled records must not appear in unrelated assignment lists, dropdowns, navigation, or operational workflows.
+- Activate/deactivate actions must require explicit SweetAlert confirmation and explain the effect of the state change.
+
+### Client Onboarding Forms
+- Client onboarding forms must start with client identity details, then contact/address, emergency contact, and home assignment.
+- Required fields must be limited to details needed to safely create the record.
+- Emergency contact fields should remain visible during onboarding because they support escalation.
+- Status must be explicit and visible; default to active only when creating a real active client record.
+- Client onboarding assessment must use a stepped workflow with a visible step list and breadcrumbs.
+- Assessment steps must include a master assessment record plus needs, functional, medical, mental capacity, risk, communication, equality, social, and environmental sections.
+- Each assessment section must group evidence fields under clear clinical headings and keep notes close to the related evidence.
+- Onboarding state must always be visible: onboarding, pending, approved, or declined.
+- Submission must move the record to pending review; approval/decline must be explicit actions.
+- Declines must capture review notes that tell the user what needs review before resubmission.
+- Editing a declined or approved assessment must return the onboarding record to onboarding state until resubmitted.
 
 ---
 

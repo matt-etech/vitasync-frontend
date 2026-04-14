@@ -33,24 +33,35 @@ Update Rules:
   - [ ] Notification events emitted from domain events
   - [ ] Documents can be stored, retrieved, and audited
   - [ ] Basic global search works on core entities
-- Notes:
-  - Project scaffolding complete (`backend`, `frontend`)
-  - Laravel login, local Bootstrap/Font Awesome UI shell, users/roles/permissions CRUD, permission middleware, home CRUD, logo upload, and home-scoped user management are implemented.
-  - Role/permission checks are enforced for the implemented identity and home-management protected routes; broader Phase 0 enforcement remains open for future modules.
+  - Notes:
+    - Project scaffolding complete (`backend`, `frontend`)
+    - Laravel login, local Bootstrap/Font Awesome UI shell, users/roles/permissions CRUD, permission middleware, home CRUD, logo upload, and home-scoped user management are implemented.
+    - Client onboarding CRUD is implemented with home assignment, core client contact/emergency fields, stepped onboarding assessments, pending review submission, and approve/decline adjudication notes.
+    - Role/permission checks are enforced for the implemented identity and home-management protected routes; broader Phase 0 enforcement remains open for future modules.
 
 ### Phase 1 — Minimum Care Loop
-- Status: `NOT_STARTED`
+- Status: `IN_PROGRESS`
 - Exit Criteria Check:
   - [ ] End-to-end care loop completes
+  - [x] Client record can be created
+  - [x] Basic onboarding assessment can be recorded
   - [ ] EVV check-in/check-out timestamps captured and linked to visits
   - [ ] Full audit trail exists for the loop
+  - [ ] Care plan, scheduling, visit execution, and visit notes are implemented
+  - Notes:
+    - Client onboarding assessments now capture master assessment, needs, functional, medical, capacity, risk, communication, equality, social, and environmental evidence before care planning.
 
 ### Phase 2 — Safety & Compliance Core
-- Status: `NOT_STARTED`
+- Status: `IN_PROGRESS`
 - Exit Criteria Check:
   - [ ] Risk, consent/capacity, medication, incident, safeguarding workflows operational
+  - [x] Risk evidence can be captured during onboarding
+  - [x] Mental capacity evidence can be captured during onboarding
+  - [x] Basic medication support needs can be captured during onboarding
   - [ ] Medication administration recorded with accountability
   - [ ] Incident to safeguarding escalation traceable end-to-end
+  - Notes:
+    - Current safety/compliance work is onboarding evidence capture only; full operational medication, incident, safeguarding, and consent workflows remain open.
 
 ### Phase 3 — Workforce & Scheduling Intelligence
 - Status: `NOT_STARTED`
