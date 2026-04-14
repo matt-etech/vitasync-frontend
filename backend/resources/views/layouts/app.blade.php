@@ -41,6 +41,71 @@
             border-radius: .5rem;
         }
 
+        .btn {
+            font-weight: 700;
+            letter-spacing: -.01em;
+        }
+
+        .btn-primary {
+            box-shadow: 0 8px 18px rgba(15, 118, 110, .18);
+        }
+
+        .btn-primary:hover,
+        .btn-primary:focus {
+            box-shadow: 0 10px 22px rgba(19, 78, 74, .22);
+        }
+
+        .btn-action {
+            align-items: center;
+            background: #fff;
+            border: 1px solid #d0d5dd;
+            color: #344054;
+            display: inline-flex;
+            gap: .45rem;
+            line-height: 1.1;
+            padding: .48rem .72rem;
+            transition: background-color .15s ease, border-color .15s ease, color .15s ease, box-shadow .15s ease;
+        }
+
+        .btn-action:hover,
+        .btn-action:focus {
+            background: #f8fafc;
+            border-color: #98a2b3;
+            color: #101828;
+            box-shadow: 0 6px 16px rgba(16, 24, 40, .08);
+        }
+
+        .btn-action-primary {
+            background: #ecfdf9;
+            border-color: #99f6e4;
+            color: #0f766e;
+        }
+
+        .btn-action-primary:hover,
+        .btn-action-primary:focus {
+            background: #ccfbf1;
+            border-color: #5eead4;
+            color: #134e4a;
+        }
+
+        .btn-action-danger {
+            background: #fff5f5;
+            border-color: #fecaca;
+            color: #b42318;
+        }
+
+        .btn-action-danger:hover,
+        .btn-action-danger:focus {
+            background: #fee4e2;
+            border-color: #fda29b;
+            color: #7a271a;
+        }
+
+        .btn-action .fa-solid,
+        .btn-action .fa-regular {
+            font-size: .95em;
+        }
+
         .text-brand {
             color: var(--vitasync-teal-dark);
         }
@@ -157,6 +222,98 @@
             border-radius: 1.25rem;
             box-shadow: 0 12px 32px rgba(16, 24, 40, .06);
             padding: 2rem;
+        }
+
+        .form-workspace {
+            background: #fff;
+            border: 1px solid var(--vitasync-line);
+            border-radius: 1rem;
+            box-shadow: 0 12px 32px rgba(16, 24, 40, .06);
+            overflow: hidden;
+        }
+
+        .form-section {
+            padding: 1.35rem;
+        }
+
+        .form-section + .form-section {
+            border-top: 1px solid var(--vitasync-soft-line);
+        }
+
+        .form-section-header {
+            margin-bottom: 1rem;
+            max-width: 44rem;
+        }
+
+        .form-section-title {
+            color: var(--vitasync-ink);
+            font-size: 1rem;
+            font-weight: 800;
+            margin-bottom: .25rem;
+        }
+
+        .form-section-description {
+            color: var(--vitasync-muted);
+            margin-bottom: 0;
+        }
+
+        .form-actions {
+            align-items: center;
+            background: #f8fafc;
+            border-top: 1px solid var(--vitasync-line);
+            display: flex;
+            flex-wrap: wrap;
+            gap: .65rem;
+            justify-content: flex-end;
+            padding: 1rem 1.35rem;
+        }
+
+        .choice-card {
+            align-items: flex-start;
+            background: #fff;
+            border: 1px solid var(--vitasync-line);
+            border-radius: .75rem;
+            display: flex;
+            gap: .8rem;
+            height: 100%;
+            padding: .95rem;
+            transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+        }
+
+        .choice-card:hover,
+        .choice-card:focus-within {
+            background: #f8fafc;
+            border-color: #99f6e4;
+            box-shadow: 0 8px 22px rgba(16, 24, 40, .06);
+        }
+
+        .choice-card .form-check-input {
+            margin-top: .2rem;
+        }
+
+        .breadcrumb-shell {
+            color: #475467;
+            font-size: .9rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .breadcrumb-shell .breadcrumb {
+            margin-bottom: 0;
+        }
+
+        .breadcrumb-shell .breadcrumb-item a {
+            color: var(--vitasync-teal-dark);
+            text-decoration: none;
+        }
+
+        .breadcrumb-shell .breadcrumb-item a:hover,
+        .breadcrumb-shell .breadcrumb-item a:focus {
+            text-decoration: underline;
+        }
+
+        .breadcrumb-shell .breadcrumb-item.active {
+            color: #344054;
         }
 
         .focus-ring-brand:focus {
@@ -357,6 +514,8 @@
         @endauth
 
         <main class="container-fluid py-4">
+            @yield('breadcrumbs')
+
             @if (session('status'))
                 <div class="alert alert-success">
                     {{ session('status') }}
@@ -393,7 +552,82 @@
                         { extend: 'copyHtml5', text: '<i class="fa-regular fa-copy me-1"></i>Copy', className: 'btn btn-sm', exportOptions: { columns: ':not(.no-export)' } },
                         { extend: 'csvHtml5', text: '<i class="fa-solid fa-file-csv me-1"></i>CSV', className: 'btn btn-sm', title: exportTitle, exportOptions: { columns: ':not(.no-export)' } },
                         { extend: 'excelHtml5', text: '<i class="fa-regular fa-file-excel me-1"></i>Excel', className: 'btn btn-sm', title: exportTitle, exportOptions: { columns: ':not(.no-export)' } },
-                        { extend: 'pdfHtml5', text: '<i class="fa-regular fa-file-pdf me-1"></i>PDF', className: 'btn btn-sm', title: exportTitle, orientation: 'landscape', pageSize: 'A4', exportOptions: { columns: ':not(.no-export)' } }
+                        {
+                            extend: 'pdfHtml5',
+                            text: '<i class="fa-regular fa-file-pdf me-1"></i>PDF',
+                            className: 'btn btn-sm',
+                            title: exportTitle,
+                            orientation: 'landscape',
+                            pageSize: 'A4',
+                            exportOptions: { columns: ':not(.no-export)' },
+                            customize: function (doc) {
+                                const generatedAt = new Date().toLocaleString();
+                                const tableNode = doc.content.find(function (node) {
+                                    return node.table;
+                                });
+
+                                doc.pageMargins = [32, 54, 32, 42];
+                                doc.defaultStyle = {
+                                    fontSize: 9,
+                                    color: '#101828',
+                                };
+
+                                doc.styles.title = {
+                                    fontSize: 16,
+                                    bold: true,
+                                    color: '#134e4a',
+                                    alignment: 'left',
+                                    margin: [0, 0, 0, 10],
+                                };
+
+                                doc.styles.tableHeader = {
+                                    bold: true,
+                                    fontSize: 9,
+                                    color: '#ffffff',
+                                    fillColor: '#134e4a',
+                                    margin: [0, 4, 0, 4],
+                                };
+
+                                doc.content.splice(1, 0, {
+                                    text: 'Generated ' + generatedAt,
+                                    color: '#475467',
+                                    fontSize: 8,
+                                    margin: [0, 0, 0, 14],
+                                });
+
+                                if (tableNode) {
+                                    const columnCount = tableNode.table.body[0].length;
+                                    tableNode.table.widths = Array(columnCount).fill('*');
+                                    tableNode.layout = {
+                                        hLineColor: function () { return '#d0d5dd'; },
+                                        vLineColor: function () { return '#eaecf0'; },
+                                        hLineWidth: function (i) { return i === 0 || i === 1 ? 1 : 0.5; },
+                                        vLineWidth: function () { return 0.5; },
+                                        paddingLeft: function () { return 7; },
+                                        paddingRight: function () { return 7; },
+                                        paddingTop: function () { return 6; },
+                                        paddingBottom: function () { return 6; },
+                                        fillColor: function (rowIndex) {
+                                            if (rowIndex === 0) {
+                                                return '#134e4a';
+                                            }
+
+                                            return rowIndex % 2 === 0 ? '#f8fafc' : null;
+                                        },
+                                    };
+                                }
+
+                                doc.footer = function (currentPage, pageCount) {
+                                    return {
+                                        columns: [
+                                            { text: 'VitaSync', alignment: 'left', color: '#475467', fontSize: 8 },
+                                            { text: 'Page ' + currentPage + ' of ' + pageCount, alignment: 'right', color: '#475467', fontSize: 8 },
+                                        ],
+                                        margin: [32, 0],
+                                    };
+                                };
+                            }
+                        }
                     ],
                     language: {
                         search: '',

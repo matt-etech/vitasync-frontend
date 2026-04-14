@@ -1,5 +1,11 @@
 @extends('layouts.app')
 
+@section('breadcrumbs')
+    <x-breadcrumbs :items="[
+        ['label' => 'Workspace'],
+    ]" />
+@endsection
+
 @section('content')
     <div class="mb-4">
         <div>

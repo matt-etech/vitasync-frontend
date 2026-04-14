@@ -1,5 +1,12 @@
 @extends('layouts.app')
 
+@section('breadcrumbs')
+    <x-breadcrumbs :items="[
+        ['label' => 'Workspace', 'url' => route('dashboard')],
+        ['label' => 'Welcome'],
+    ]" />
+@endsection
+
 @section('content')
     <div class="card shadow-sm">
         <div class="card-body">

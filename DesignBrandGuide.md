@@ -146,6 +146,28 @@ Everything is task-driven.
 
 ---
 
+## 4.1.1 Action Buttons
+
+Use VitaSync action button classes for table row actions and compact workflow actions instead of raw Bootstrap outline buttons.
+
+### Shape And Density
+- Buttons keep an 8px maximum radius.
+- Table action buttons are compact but must keep readable labels.
+- Use icon + label for row actions. Do not use icon-only destructive actions.
+
+### Variants
+- Primary page actions use the VitaSync teal primary button.
+- Row view/manage actions use the calm teal-tinted action style.
+- Row edit actions use neutral white with visible borders and dark text.
+- Destructive actions use a red-tinted background with red text and border; never use solid red unless confirming a critical destructive action.
+
+### Contrast
+- Button text must be high contrast in normal, hover, and focus states.
+- Borders must remain visible against white table backgrounds.
+- Hover states may lift slightly, but must not shift layout.
+
+---
+
 ## 4.2 Status Indicators
 
 Use consistent visual patterns:
@@ -222,6 +244,13 @@ Administrative and operational index tables must use the local DataTables asset 
 - Headers must have clear contrast against the table body and must remain readable when sorted.
 - Disabled, empty, and filtered states must remain legible under WCAG 2.2 AA contrast expectations.
 - Table controls, table body, and footer pagination need clear spacing. The record count and pagination footer must not sit against the outer card edge.
+
+### PDF Export Styling
+- PDF exports must not use the default cramped DataTables layout.
+- Use landscape A4 by default for management tables.
+- Use clear page margins, a visible report title, generated timestamp, high-contrast table headers, readable row spacing, and page numbers.
+- Stretch exported tables to the available page width where practical.
+- Keep exported table colors aligned to VitaSync teal and neutral colors.
 
 ---
 

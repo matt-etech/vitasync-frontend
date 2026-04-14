@@ -1,5 +1,12 @@
 @extends('layouts.app')
 
+@section('breadcrumbs')
+    <x-breadcrumbs :items="[
+        ['label' => 'Workspace', 'url' => route('dashboard')],
+        ['label' => 'Homes'],
+    ]" />
+@endsection
+
 @section('content')
     <x-page-header title="Homes" description="Create care homes, assign managers, and manage home users.">
         <x-slot:action>
@@ -42,12 +49,12 @@
                             <td><span class="badge text-bg-{{ $home->status === 'active' ? 'success' : ($home->status === 'onboarding' ? 'warning' : 'secondary') }}">{{ ucfirst($home->status) }}</span></td>
                             <td>
                                 <div class="d-flex flex-wrap gap-2">
-                                    <a class="btn btn-sm btn-outline-primary" href="{{ route('homes.users.index', $home) }}"><i class="fa-solid fa-users me-1"></i>Users</a>
-                                    <a class="btn btn-sm btn-outline-secondary" href="{{ route('homes.edit', $home) }}"><i class="fa-solid fa-pen me-1"></i>Edit</a>
+                                    <a class="btn btn-sm btn-action btn-action-primary" href="{{ route('homes.users.index', $home) }}"><i class="fa-solid fa-users"></i>Users</a>
+                                    <a class="btn btn-sm btn-action" href="{{ route('homes.edit', $home) }}"><i class="fa-solid fa-pen"></i>Edit</a>
                                     <form method="POST" action="{{ route('homes.destroy', $home) }}" onsubmit="return confirm('Delete this home? Users will be detached from it.');">
                                         @csrf
                                         @method('DELETE')
-                                        <button class="btn btn-sm btn-outline-danger" type="submit"><i class="fa-solid fa-trash me-1"></i>Delete</button>
+                                        <button class="btn btn-sm btn-action btn-action-danger" type="submit"><i class="fa-solid fa-trash"></i>Delete</button>
                                     </form>
                                 </div>
                             </td>

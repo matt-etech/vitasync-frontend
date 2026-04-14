@@ -1,5 +1,14 @@
 @extends('layouts.app')
 
+@section('breadcrumbs')
+    <x-breadcrumbs :items="[
+        ['label' => 'Workspace', 'url' => route('dashboard')],
+        ['label' => 'Homes', 'url' => route('homes.index')],
+        ['label' => $home->name],
+        ['label' => 'Users'],
+    ]" />
+@endsection
+
 @section('content')
     <x-page-header title="{{ $home->name }} Users" description="Manage users who belong to this home and assign their access.">
         <x-slot:action>
@@ -43,11 +52,11 @@
                             <td><span class="badge text-bg-{{ $user->is_active ? 'success' : 'secondary' }}">{{ $user->is_active ? 'Active' : 'Inactive' }}</span></td>
                             <td>
                                 <div class="d-flex flex-wrap gap-2">
-                                    <a class="btn btn-sm btn-outline-secondary" href="{{ route('homes.users.edit', [$home, $user]) }}"><i class="fa-solid fa-pen me-1"></i>Edit</a>
+                                    <a class="btn btn-sm btn-action" href="{{ route('homes.users.edit', [$home, $user]) }}"><i class="fa-solid fa-pen"></i>Edit</a>
                                     <form method="POST" action="{{ route('homes.users.destroy', [$home, $user]) }}" onsubmit="return confirm('Delete this home user?');">
                                         @csrf
                                         @method('DELETE')
-                                        <button class="btn btn-sm btn-outline-danger" type="submit"><i class="fa-solid fa-trash me-1"></i>Delete</button>
+                                        <button class="btn btn-sm btn-action btn-action-danger" type="submit"><i class="fa-solid fa-trash"></i>Delete</button>
                                     </form>
                                 </div>
                             </td>
