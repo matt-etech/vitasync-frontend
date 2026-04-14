@@ -13,7 +13,7 @@ class PermissionController extends Controller
     public function index(): View
     {
         return view('permissions.index', [
-            'permissions' => Permission::withCount('roles')->orderBy('name')->paginate(10),
+            'permissions' => Permission::withCount('roles')->orderBy('name')->get(),
         ]);
     }
 

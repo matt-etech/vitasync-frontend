@@ -3,6 +3,7 @@
 @section('content')
     <div class="row min-vh-100 align-items-center g-5">
         <section class="col-lg-7">
+            <img src="{{ asset('logo.png') }}" alt="VitaSync logo" class="mb-4" style="width: 4.5rem; height: 4.5rem; object-fit: contain;">
             <p class="mb-3 small fw-semibold text-uppercase text-brand">VitaSync Access Control</p>
             <h1 class="display-6 fw-semibold">Sign in to manage care platform access safely.</h1>
             <p class="mt-3 lead text-secondary">

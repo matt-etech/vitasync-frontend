@@ -18,7 +18,7 @@ class HomeUserController extends Controller
     {
         return view('homes.users.index', [
             'home' => $home,
-            'users' => $home->users()->with(['roles', 'permissions'])->orderBy('name')->paginate(10),
+            'users' => $home->users()->with(['roles', 'permissions'])->orderBy('name')->get(),
         ]);
     }
 

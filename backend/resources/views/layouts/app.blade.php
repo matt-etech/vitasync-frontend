@@ -6,6 +6,8 @@
     <title>{{ config('app.name', 'VitaSync') }}</title>
     <link href="{{ asset('vendor/bootstrap/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ asset('vendor/fontawesome/css/all.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('vendor/datatables/css/dataTables.bootstrap5.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('vendor/datatables/css/buttons.bootstrap5.min.css') }}" rel="stylesheet">
     <style>
         :root {
             --vitasync-ink: #101828;
@@ -58,9 +60,8 @@
         .brand-mark {
             width: 3rem;
             height: 3rem;
-            border-radius: .875rem;
-            background: var(--vitasync-teal-dark);
-            color: #fff;
+            border-radius: .5rem;
+            object-fit: contain;
         }
 
         .brand-title {
@@ -162,6 +163,100 @@
             border-color: var(--vitasync-teal);
             box-shadow: 0 0 0 .25rem rgba(17, 94, 89, .15);
         }
+
+        div.dataTables_wrapper div.dataTables_filter input,
+        div.dataTables_wrapper div.dataTables_length select {
+            border-radius: .5rem;
+        }
+
+        .dataTables_wrapper {
+            padding: 1.25rem;
+        }
+
+        .dataTables_wrapper .dataTables_length label,
+        .dataTables_wrapper .dataTables_filter label,
+        .dataTables_wrapper .dataTables_info {
+            color: #344054;
+            font-size: .9rem;
+            font-weight: 600;
+        }
+
+        .dataTables_wrapper .dataTables_filter input,
+        .dataTables_wrapper .dataTables_length select {
+            border: 1px solid var(--vitasync-line);
+            color: var(--vitasync-ink);
+            min-height: 2.35rem;
+        }
+
+        .dataTables_wrapper .dataTables_filter input::placeholder {
+            color: #667085;
+        }
+
+        .dt-buttons .btn {
+            background: #fff;
+            border: 1px solid #98a2b3;
+            color: #1d2939;
+            font-weight: 700;
+            margin-right: .35rem;
+            min-width: 5rem;
+        }
+
+        .dataTables_wrapper > .row:first-child {
+            margin-bottom: 1rem !important;
+        }
+
+        .dataTables_wrapper > .row:last-child {
+            border-top: 1px solid var(--vitasync-soft-line);
+            margin-top: 1.25rem !important;
+            padding-top: 1rem;
+        }
+
+        .dataTables_wrapper .dataTables_info {
+            padding-top: .35rem !important;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .pagination {
+            margin-bottom: 0;
+        }
+
+        .dt-buttons .btn:hover,
+        .dt-buttons .btn:focus {
+            background: var(--vitasync-teal-dark);
+            border-color: var(--vitasync-teal-dark);
+            color: #fff;
+        }
+
+        table.dataTable {
+            margin-top: .5rem !important;
+        }
+
+        table.dataTable thead th {
+            background: #eef4f3;
+            border-bottom: 1px solid var(--vitasync-line) !important;
+            color: #101828;
+            font-size: .82rem;
+            font-weight: 800;
+            letter-spacing: .02em;
+            text-transform: none;
+        }
+
+        table.dataTable tbody td {
+            border-color: var(--vitasync-soft-line);
+            color: var(--vitasync-ink);
+            vertical-align: middle;
+        }
+
+        .page-item .page-link {
+            border-color: #98a2b3;
+            color: #1d2939;
+            font-weight: 700;
+        }
+
+        .page-item.active .page-link {
+            background: var(--vitasync-teal-dark);
+            border-color: var(--vitasync-teal-dark);
+            color: #fff;
+        }
     </style>
 </head>
 <body>
@@ -172,9 +267,7 @@
                     <div class="container-fluid px-4 py-3">
                         <div class="d-flex flex-column flex-md-row gap-3 align-items-md-center justify-content-md-between">
                             <div class="d-flex align-items-center gap-3">
-                                <span class="brand-mark d-inline-flex align-items-center justify-content-center">
-                                    <i class="fa-solid fa-heart-pulse"></i>
-                                </span>
+                                <img src="{{ asset('logo.png') }}" alt="VitaSync logo" class="brand-mark">
                                 <div>
                                     <a href="{{ route('dashboard') }}" class="brand-title fw-bold text-dark text-decoration-none">VitaSync</a>
                                     <p class="brand-kicker mb-0">Default Home</p>
@@ -256,23 +349,6 @@
                                     </ul>
                                 </li>
                                 @endif
-                                <li class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="fa-solid fa-briefcase-medical me-2"></i>Care
-                                    </a>
-                                    <ul class="dropdown-menu mega-menu">
-                                        <li><span class="dropdown-header section-kicker">Care Operations</span></li>
-                                        <li><span class="dropdown-item d-flex gap-2 disabled"><span class="menu-icon"><i class="fa-solid fa-user-group"></i></span><span><span class="d-block fw-bold">Clients</span><span class="d-block small">Client records, profiles, funding, and documents.</span></span></span></li>
-                                        <li><span class="dropdown-item d-flex gap-2 disabled"><span class="menu-icon"><i class="fa-solid fa-clipboard-list"></i></span><span><span class="d-block fw-bold">Care Plans</span><span class="d-block small">Structured care plans and review cycles.</span></span></span></li>
-                                        <li><span class="dropdown-item d-flex gap-2 disabled"><span class="menu-icon"><i class="fa-solid fa-pills"></i></span><span><span class="d-block fw-bold">Medications</span><span class="d-block small">Schedules, routes, and active treatments.</span></span></span></li>
-                                    </ul>
-                                </li>
-                                <li class="nav-item">
-                                    <span class="nav-link disabled"><i class="fa-regular fa-calendar-days me-2"></i>Scheduling</span>
-                                </li>
-                                <li class="nav-item">
-                                    <span class="nav-link disabled"><i class="fa-solid fa-sterling-sign me-2"></i>Finance</span>
-                                </li>
                             </ul>
                         </div>
                     </div>
@@ -290,6 +366,43 @@
             @yield('content')
         </main>
     </div>
+    <script src="{{ asset('vendor/jquery/jquery-3.7.1.min.js') }}"></script>
     <script src="{{ asset('vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ asset('vendor/jszip/jszip.min.js') }}"></script>
+    <script src="{{ asset('vendor/pdfmake/pdfmake.min.js') }}"></script>
+    <script src="{{ asset('vendor/pdfmake/vfs_fonts.js') }}"></script>
+    <script src="{{ asset('vendor/datatables/js/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ asset('vendor/datatables/js/dataTables.bootstrap5.min.js') }}"></script>
+    <script src="{{ asset('vendor/datatables/js/dataTables.buttons.min.js') }}"></script>
+    <script src="{{ asset('vendor/datatables/js/buttons.bootstrap5.min.js') }}"></script>
+    <script src="{{ asset('vendor/datatables/js/buttons.html5.min.js') }}"></script>
+    <script src="{{ asset('vendor/datatables/js/buttons.print.min.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('[data-vitasync-datatable]').forEach(function (table) {
+                const exportTitle = table.getAttribute('data-export-title') || document.title;
+
+                $(table).DataTable({
+                    pageLength: 10,
+                    order: [],
+                    responsive: true,
+                    dom: "<'row align-items-center g-3 mb-3'<'col-lg-6'B><'col-lg-3'l><'col-lg-3'f>>" +
+                        "<'row'<'col-12'tr>>" +
+                        "<'row align-items-center g-3 mt-3'<'col-md-5'i><'col-md-7'p>>",
+                    buttons: [
+                        { extend: 'copyHtml5', text: '<i class="fa-regular fa-copy me-1"></i>Copy', className: 'btn btn-sm', exportOptions: { columns: ':not(.no-export)' } },
+                        { extend: 'csvHtml5', text: '<i class="fa-solid fa-file-csv me-1"></i>CSV', className: 'btn btn-sm', title: exportTitle, exportOptions: { columns: ':not(.no-export)' } },
+                        { extend: 'excelHtml5', text: '<i class="fa-regular fa-file-excel me-1"></i>Excel', className: 'btn btn-sm', title: exportTitle, exportOptions: { columns: ':not(.no-export)' } },
+                        { extend: 'pdfHtml5', text: '<i class="fa-regular fa-file-pdf me-1"></i>PDF', className: 'btn btn-sm', title: exportTitle, orientation: 'landscape', pageSize: 'A4', exportOptions: { columns: ':not(.no-export)' } }
+                    ],
+                    language: {
+                        search: '',
+                        searchPlaceholder: 'Search records',
+                        lengthMenu: 'Show _MENU_',
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>

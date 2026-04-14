@@ -17,7 +17,7 @@ class UserController extends Controller
     public function index(): View
     {
         return view('users.index', [
-            'users' => User::with(['home', 'roles', 'permissions'])->orderBy('name')->paginate(10),
+            'users' => User::with(['home', 'roles', 'permissions'])->orderBy('name')->get(),
         ]);
     }
 

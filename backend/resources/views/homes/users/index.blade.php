@@ -12,14 +12,14 @@
 
     <div class="card shadow-sm">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-hover align-middle mb-0" data-vitasync-datatable data-export-title="{{ $home->name }} Users">
                 <thead class="table-light">
                     <tr>
                         <th>User</th>
                         <th>Role</th>
                         <th>Direct permissions</th>
                         <th>Status</th>
-                        <th>Actions</th>
+                        <th class="no-export">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -61,6 +61,4 @@
             </table>
         </div>
     </div>
-
-    <div class="mt-4">{{ $users->links() }}</div>
 @endsection

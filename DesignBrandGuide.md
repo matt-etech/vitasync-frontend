@@ -1,7 +1,7 @@
 # VitaSync Design Guidelines & Branding System  
 ### For a Regulated Care Operating Platform
 
-Last Updated: 2026-04-11
+Last Updated: 2026-04-14
 Related Documents:
 - `Requirements.md` (phase workflow priorities)
 - `AGENTS.md` (engineering and validation rules)
@@ -103,6 +103,11 @@ The UI is not decoration. It is a **safety-critical interface**.
 ### Grid
 - 8px spacing system
 
+### Shape
+- Buttons, form controls, tabs, and dropdown items use small radii only: 8px maximum.
+- Large structural shells may use softer rounding when it improves grouping, but action controls must remain nearly square.
+- Avoid pill buttons unless a control is explicitly a status chip or compact filter.
+
 ---
 
 ## 3.4 Iconography
@@ -192,6 +197,34 @@ Chronological clarity
 
 ---
 
+## 4.6 Management Tables
+
+Administrative and operational index tables must use the local DataTables asset bundle when the records are useful for review or reporting.
+
+### Required Table Capabilities
+- Search across visible table content.
+- Pagination with a default page size of 10.
+- Export controls for:
+  - Copy
+  - CSV
+  - Excel
+  - PDF
+- Exclude action/control columns from exports.
+- Keep table controls visually consistent with VitaSync controls: 8px maximum radius and calm neutral styling.
+- Keep table controls high contrast: dark text on white controls, visible borders, and teal only for active/focus states.
+
+### Rules
+- Do not rely on remote CDN assets at runtime.
+- Use server-rendered table content first, then progressively enhance with DataTables.
+- Use server-side pagination only when datasets become too large for safe client-side rendering.
+- Exported filenames/titles must describe the entity being exported.
+- Export button text must always be visible; never rely on color-only or icon-only controls.
+- Headers must have clear contrast against the table body and must remain readable when sorted.
+- Disabled, empty, and filtered states must remain legible under WCAG 2.2 AA contrast expectations.
+- Table controls, table body, and footer pagination need clear spacing. The record count and pagination footer must not sit against the outer card edge.
+
+---
+
 # 5. Interaction Design Rules
 
 ## 5.1 One Primary Action per Screen
@@ -256,20 +289,23 @@ Use:
 
 # 7. Application Layout Structure
 
-## Top Bar
-- Search
-- Alerts
-- User profile
+## Workspace Header
+- Use a two-level header for the web administration shell.
+- Level 1: brand/home identity on the left; user identity, current home context, and logout on the right.
+- Level 2: primary navigation below the header content.
+- Header shell should feel calm and contained, with enough spacing to reduce cognitive load.
 
-## Left Navigation
-- Dashboard
-- Care
-- Workforce
-- Scheduling
-- Finance
-- Governance
-- Reports
-- Integrations
+## Primary Navigation
+- Use horizontal navigation for desktop management workflows.
+- Group related links into clearly labelled dropdowns.
+- Put `Users`, `Roles`, and `Permissions` under `User Management`.
+- Use active states to show the current workspace.
+- Show only navigation items the user has permission to access.
+
+## Navigation Scope
+- Only show modules that are implemented and permission-accessible.
+- Do not add placeholder navigation for future phases.
+- Future modules may be added when their workflows exist end-to-end.
 
 ## Main Area
 - Tasks / data / workflow

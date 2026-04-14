@@ -17,7 +17,7 @@ class HomeController extends Controller
     public function index(): View
     {
         return view('homes.index', [
-            'homes' => Home::with('manager')->withCount('users')->orderBy('name')->paginate(10),
+            'homes' => Home::with('manager')->withCount('users')->orderBy('name')->get(),
         ]);
     }
 

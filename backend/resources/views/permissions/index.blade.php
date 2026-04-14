@@ -9,12 +9,12 @@
 
     <div class="card shadow-sm">
         <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+        <table class="table table-hover align-middle mb-0" data-vitasync-datatable data-export-title="Permissions">
             <thead class="table-light">
                 <tr>
                     <th>Permission</th>
                     <th>Roles</th>
-                    <th>Actions</th>
+                    <th class="no-export">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -45,6 +45,4 @@
         </table>
         </div>
     </div>
-
-    <div class="mt-4">{{ $permissions->links() }}</div>
 @endsection
