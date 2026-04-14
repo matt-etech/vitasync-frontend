@@ -54,6 +54,14 @@ class User extends Authenticatable
             ->values();
     }
 
+    public function hasPermission(string $permissionName): bool
+    {
+        return $this->permissions()->where('name', $permissionName)->exists()
+            || $this->roles()
+                ->whereHas('permissions', fn ($query) => $query->where('name', $permissionName))
+                ->exists();
+    }
+
     /**
      * Get the attributes that should be cast.
      *

@@ -25,8 +25,14 @@ class UpdateUserRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user)],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
+            'home_id' => ['nullable', 'integer', Rule::exists('homes', 'id')],
+            'job_title' => ['nullable', 'string', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:50'],
+            'is_active' => ['nullable', 'boolean'],
             'roles' => ['array'],
             'roles.*' => ['integer', Rule::exists('roles', 'id')],
+            'permissions' => ['array'],
+            'permissions.*' => ['integer', Rule::exists('permissions', 'id')],
         ];
     }
 }

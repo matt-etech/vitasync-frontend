@@ -28,10 +28,15 @@ class AuthAndAccessManagementTest extends TestCase
 
     public function test_user_can_login_and_see_access_menu(): void
     {
-        User::create([
+        $user = User::create([
             'name' => 'Admin',
             'email' => 'admin@example.com',
             'password' => Hash::make('password'),
+        ]);
+        $user->permissions()->attach([
+            Permission::create(['name' => 'users.manage', 'description' => 'Manage users'])->id,
+            Permission::create(['name' => 'roles.manage', 'description' => 'Manage roles'])->id,
+            Permission::create(['name' => 'permissions.manage', 'description' => 'Manage permissions'])->id,
         ]);
 
         $this->post(route('login.store'), [
@@ -41,6 +46,7 @@ class AuthAndAccessManagementTest extends TestCase
 
         $this->get(route('dashboard'))
             ->assertOk()
+            ->assertSee('User Management')
             ->assertSee('Users')
             ->assertSee('Roles')
             ->assertSee('Permissions');
@@ -53,6 +59,10 @@ class AuthAndAccessManagementTest extends TestCase
             'email' => 'admin@example.com',
             'password' => Hash::make('password'),
         ]);
+        $user->permissions()->attach(Permission::create([
+            'name' => 'roles.manage',
+            'description' => 'Manage roles',
+        ]));
         $permission = Permission::create([
             'name' => 'users.manage',
             'description' => 'Manage users',
@@ -78,6 +88,10 @@ class AuthAndAccessManagementTest extends TestCase
             'email' => 'admin@example.com',
             'password' => Hash::make('password'),
         ]);
+        $admin->permissions()->attach(Permission::create([
+            'name' => 'users.manage',
+            'description' => 'Manage users',
+        ]));
         $role = Role::create([
             'name' => 'Coordinator',
             'description' => 'Coordinates care operations',

@@ -9,7 +9,19 @@
     </div>
 
     <div class="row g-3">
-        <a class="col-md-4 text-decoration-none" href="{{ route('users.index') }}">
+        @if (auth()->user()->hasPermission('homes.manage'))
+        <a class="col-md-3 text-decoration-none" href="{{ route('homes.index') }}">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+            <p class="small fw-medium text-secondary">Homes</p>
+            <p class="display-6 fw-semibold text-dark">{{ $homeCount }}</p>
+            <p class="mb-0 text-secondary">Register homes and assign managers.</p>
+                </div>
+            </div>
+        </a>
+        @endif
+        @if (auth()->user()->hasPermission('users.manage'))
+        <a class="col-md-3 text-decoration-none" href="{{ route('users.index') }}">
             <div class="card h-100 shadow-sm">
                 <div class="card-body">
             <p class="small fw-medium text-secondary">Users</p>
@@ -18,7 +30,9 @@
                 </div>
             </div>
         </a>
-        <a class="col-md-4 text-decoration-none" href="{{ route('roles.index') }}">
+        @endif
+        @if (auth()->user()->hasPermission('roles.manage'))
+        <a class="col-md-3 text-decoration-none" href="{{ route('roles.index') }}">
             <div class="card h-100 shadow-sm">
                 <div class="card-body">
             <p class="small fw-medium text-secondary">Roles</p>
@@ -27,7 +41,9 @@
                 </div>
             </div>
         </a>
-        <a class="col-md-4 text-decoration-none" href="{{ route('permissions.index') }}">
+        @endif
+        @if (auth()->user()->hasPermission('permissions.manage'))
+        <a class="col-md-3 text-decoration-none" href="{{ route('permissions.index') }}">
             <div class="card h-100 shadow-sm">
                 <div class="card-body">
             <p class="small fw-medium text-secondary">Permissions</p>
@@ -36,5 +52,6 @@
                 </div>
             </div>
         </a>
+        @endif
     </div>
 @endsection

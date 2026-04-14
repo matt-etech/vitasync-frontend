@@ -19,6 +19,8 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $permissions = collect([
+            ['name' => 'homes.manage', 'description' => 'Create, update, and remove care homes.'],
+            ['name' => 'home_users.manage', 'description' => 'Create, update, and remove users assigned to a home.'],
             ['name' => 'users.manage', 'description' => 'Create, update, and remove user accounts.'],
             ['name' => 'roles.manage', 'description' => 'Create, update, and remove roles.'],
             ['name' => 'permissions.manage', 'description' => 'Create, update, and remove permissions.'],
@@ -33,6 +35,18 @@ class DatabaseSeeder extends Seeder
             'description' => 'Full access to identity and access control.',
         ]);
         $administrator->permissions()->sync($permissions->pluck('id')->all());
+
+        $homeManager = Role::firstOrCreate([
+            'name' => 'Home Manager',
+        ], [
+            'description' => 'Can manage an assigned home and its users.',
+        ]);
+        $homeManager->permissions()->sync(
+            $permissions
+                ->whereIn('name', ['homes.manage', 'home_users.manage'])
+                ->pluck('id')
+                ->all()
+        );
 
         $user = User::firstOrCreate([
             'email' => 'admin@vitasync.local',

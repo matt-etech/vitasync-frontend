@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\HomeUserController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
@@ -20,7 +22,12 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
-    Route::resource('roles', RoleController::class)->except(['show']);
-    Route::resource('permissions', PermissionController::class)->except(['show']);
-    Route::resource('users', UserController::class)->except(['show']);
+    Route::resource('homes', HomeController::class)->except(['show'])->middleware('permission:homes.manage');
+    Route::prefix('homes/{home}')->name('homes.')->middleware('permission:home_users.manage')->group(function (): void {
+        Route::resource('users', HomeUserController::class)->except(['show'])->names('users');
+    });
+
+    Route::resource('roles', RoleController::class)->except(['show'])->middleware('permission:roles.manage');
+    Route::resource('permissions', PermissionController::class)->except(['show'])->middleware('permission:permissions.manage');
+    Route::resource('users', UserController::class)->except(['show'])->middleware('permission:users.manage');
 });

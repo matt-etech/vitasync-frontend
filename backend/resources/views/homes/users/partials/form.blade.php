@@ -1,23 +1,12 @@
 <div>
-    <div class="mb-3">
-        <label class="form-label" for="name">Full name</label>
-        <input class="form-control focus-ring-brand" id="name" name="name" value="{{ old('name', $user->name) }}" required>
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label" for="email">Email address</label>
-        <input class="form-control focus-ring-brand" id="email" name="email" type="email" value="{{ old('email', $user->email) }}" required>
-    </div>
-
     <div class="row g-3">
-        <div class="col-md-4">
-            <label class="form-label" for="home_id">Home</label>
-            <select class="form-select focus-ring-brand" id="home_id" name="home_id">
-                <option value="">Platform-wide user</option>
-                @foreach ($homes as $home)
-                    <option value="{{ $home->id }}" @selected((int) old('home_id', $user->home_id) === (int) $home->id)>{{ $home->name }}</option>
-                @endforeach
-            </select>
+        <div class="col-md-6">
+            <label class="form-label" for="name">Full name</label>
+            <input class="form-control focus-ring-brand" id="name" name="name" value="{{ old('name', $user->name) }}" required>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label" for="email">Email address</label>
+            <input class="form-control focus-ring-brand" id="email" name="email" type="email" value="{{ old('email', $user->email) }}" required>
         </div>
         <div class="col-md-4">
             <label class="form-label" for="job_title">Job title</label>
@@ -27,15 +16,16 @@
             <label class="form-label" for="phone">Phone</label>
             <input class="form-control focus-ring-brand" id="phone" name="phone" value="{{ old('phone', $user->phone) }}">
         </div>
+        <div class="col-md-4 d-flex align-items-end">
+            <label class="form-check mb-2">
+                <input type="hidden" name="is_active" value="0">
+                <input class="form-check-input" name="is_active" type="checkbox" value="1" @checked((bool) old('is_active', $user->is_active ?? true))>
+                <span class="form-check-label">Active account</span>
+            </label>
+        </div>
     </div>
 
-    <label class="form-check mt-3">
-        <input type="hidden" name="is_active" value="0">
-        <input class="form-check-input" name="is_active" type="checkbox" value="1" @checked((bool) old('is_active', $user->is_active ?? true))>
-        <span class="form-check-label">Active account</span>
-    </label>
-
-    <div class="row g-3">
+    <div class="row g-3 mt-1">
         <div class="col-md-6">
             <label class="form-label" for="password">Password</label>
             <input class="form-control focus-ring-brand" id="password" name="password" type="password" @required($passwordRequired)>
@@ -49,17 +39,19 @@
         </div>
     </div>
 
-    <fieldset class="mt-4">
+    <hr class="my-4">
+
+    <fieldset>
         <legend class="h6">Roles</legend>
         <div class="row g-3">
             @forelse ($roles as $role)
                 <label class="col-md-6">
                     <span class="d-flex gap-3 border rounded p-3 h-100">
-                    <input class="form-check-input mt-1" name="roles[]" type="checkbox" value="{{ $role->id }}" @checked(in_array($role->id, old('roles', $selectedRoles), true))>
-                    <span>
-                        <span class="d-block fw-medium">{{ $role->name }}</span>
-                        <span class="d-block small text-secondary">{{ $role->description ?: 'No description' }}</span>
-                    </span>
+                        <input class="form-check-input mt-1" name="roles[]" type="checkbox" value="{{ $role->id }}" @checked(in_array($role->id, old('roles', $selectedRoles), true))>
+                        <span>
+                            <span class="d-block fw-medium">{{ $role->name }}</span>
+                            <span class="d-block small text-secondary">{{ $role->description ?: 'No description' }}</span>
+                        </span>
                     </span>
                 </label>
             @empty
@@ -76,11 +68,11 @@
             @forelse ($permissions as $permission)
                 <label class="col-md-6">
                     <span class="d-flex gap-3 border rounded p-3 h-100">
-                    <input class="form-check-input mt-1" name="permissions[]" type="checkbox" value="{{ $permission->id }}" @checked(in_array($permission->id, old('permissions', $selectedPermissions), true))>
-                    <span>
-                        <span class="d-block fw-medium">{{ $permission->name }}</span>
-                        <span class="d-block small text-secondary">{{ $permission->description ?: 'No description' }}</span>
-                    </span>
+                        <input class="form-check-input mt-1" name="permissions[]" type="checkbox" value="{{ $permission->id }}" @checked(in_array($permission->id, old('permissions', $selectedPermissions), true))>
+                        <span>
+                            <span class="d-block fw-medium">{{ $permission->name }}</span>
+                            <span class="d-block small text-secondary">{{ $permission->description ?: 'No description' }}</span>
+                        </span>
                     </span>
                 </label>
             @empty
@@ -93,6 +85,6 @@
 
     <div class="d-flex flex-wrap gap-2 mt-4">
         <button class="btn btn-primary fw-semibold" type="submit">{{ $submitLabel }}</button>
-        <a class="btn btn-outline-secondary fw-semibold" href="{{ route('users.index') }}">Cancel</a>
+        <a class="btn btn-outline-secondary fw-semibold" href="{{ route('homes.users.index', $home) }}">Cancel</a>
     </div>
 </div>

@@ -13,7 +13,10 @@
             <thead class="table-light">
                 <tr>
                     <th>User</th>
+                    <th>Home</th>
                     <th>Roles</th>
+                    <th>Direct permissions</th>
+                    <th>Status</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -23,6 +26,16 @@
                         <td>
                             <p class="fw-semibold mb-0">{{ $user->name }}</p>
                             <p class="text-secondary mb-0">{{ $user->email }}</p>
+                            @if ($user->job_title)
+                                <p class="small text-secondary mb-0">{{ $user->job_title }}</p>
+                            @endif
+                        </td>
+                        <td>
+                            @if ($user->home)
+                                <a href="{{ route('homes.users.index', $user->home) }}">{{ $user->home->name }}</a>
+                            @else
+                                <span class="text-secondary">Platform-wide</span>
+                            @endif
                         </td>
                         <td>
                             @forelse ($user->roles as $role)
@@ -31,6 +44,8 @@
                                 <span class="text-secondary">No roles assigned</span>
                             @endforelse
                         </td>
+                        <td>{{ $user->permissions->count() }}</td>
+                        <td><span class="badge text-bg-{{ $user->is_active ? 'success' : 'secondary' }}">{{ $user->is_active ? 'Active' : 'Inactive' }}</span></td>
                         <td>
                             <div class="d-flex flex-wrap gap-2">
                                 <a class="btn btn-sm btn-outline-secondary" href="{{ route('users.edit', $user) }}"><i class="fa-solid fa-pen me-1"></i>Edit</a>
@@ -44,7 +59,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td class="py-5 text-center text-secondary" colspan="3">No users have been created yet.</td>
+                        <td class="py-5 text-center text-secondary" colspan="6">No users have been created yet.</td>
                     </tr>
                 @endforelse
             </tbody>

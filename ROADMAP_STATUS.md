@@ -1,6 +1,6 @@
 # VitaSync Roadmap Status
 
-Last Updated: 2026-04-11
+Last Updated: 2026-04-14
 Source of truth:
 - `Requirements.md` (phase scope and exit criteria)
 - `AGENTS.md` (engineering and quality rules)
@@ -35,6 +35,8 @@ Update Rules:
   - [ ] Basic global search works on core entities
 - Notes:
   - Project scaffolding complete (`backend`, `frontend`)
+  - Laravel login, local Bootstrap/Font Awesome UI shell, users/roles/permissions CRUD, permission middleware, home CRUD, logo upload, and home-scoped user management are implemented.
+  - Role/permission checks are enforced for the implemented identity and home-management protected routes; broader Phase 0 enforcement remains open for future modules.
 
 ### Phase 1 — Minimum Care Loop
 - Status: `NOT_STARTED`

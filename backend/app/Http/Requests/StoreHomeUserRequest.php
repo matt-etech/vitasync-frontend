@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class StoreUserRequest extends FormRequest
+class StoreHomeUserRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -21,7 +21,6 @@ class StoreUserRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'home_id' => ['nullable', 'integer', Rule::exists('homes', 'id')],
             'job_title' => ['nullable', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:50'],
             'is_active' => ['nullable', 'boolean'],
