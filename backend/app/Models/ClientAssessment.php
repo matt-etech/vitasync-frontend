@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable([
     'client_id',
+    'version',
     'assessment_date',
     'assessor_name',
     'assessment_type',
@@ -127,6 +128,7 @@ class ClientAssessment extends Model
     protected function casts(): array
     {
         return [
+            'version' => 'integer',
             'assessment_date' => 'date',
             'next_review_date' => 'date',
             'submitted_at' => 'datetime',

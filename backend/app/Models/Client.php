@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable([
@@ -57,7 +58,15 @@ class Client extends Model
      */
     public function assessment(): HasOne
     {
-        return $this->hasOne(ClientAssessment::class);
+        return $this->hasOne(ClientAssessment::class)->latestOfMany();
+    }
+
+    /**
+     * @return HasMany<ClientAssessment, $this>
+     */
+    public function assessments(): HasMany
+    {
+        return $this->hasMany(ClientAssessment::class);
     }
 
     public function fullName(): string

@@ -14,7 +14,7 @@ class ClientAssessmentController extends Controller
 {
     public function edit(Client $client): View
     {
-        $assessment = $this->assessmentFor($client)->load($this->sectionRelations());
+        $assessment = $this->editableAssessmentFor($client)->load($this->sectionRelations());
 
         return view('clients.assessments.edit', [
             'client' => $client->load('home'),
@@ -25,7 +25,7 @@ class ClientAssessmentController extends Controller
     public function update(UpdateClientAssessmentRequest $request, Client $client): RedirectResponse
     {
         DB::transaction(function () use ($request, $client): void {
-            $assessment = $this->assessmentFor($client);
+            $assessment = $this->editableAssessmentFor($client);
             $validated = $request->validated();
 
             $assessment->update(array_merge(data_get($validated, 'assessment', []), [
@@ -61,7 +61,7 @@ class ClientAssessmentController extends Controller
     public function submit(Client $client): RedirectResponse
     {
         DB::transaction(function () use ($client): void {
-            $assessment = $this->assessmentFor($client);
+            $assessment = $this->editableAssessmentFor($client);
 
             $assessment->update([
                 'status' => ClientAssessment::STATUS_PENDING,
@@ -86,7 +86,7 @@ class ClientAssessmentController extends Controller
     public function approve(Client $client): RedirectResponse
     {
         DB::transaction(function () use ($client): void {
-            $assessment = $this->assessmentFor($client);
+            $assessment = $this->pendingAssessmentFor($client);
 
             $assessment->update([
                 'status' => ClientAssessment::STATUS_APPROVED,
@@ -109,7 +109,7 @@ class ClientAssessmentController extends Controller
     public function decline(ReviewClientAssessmentRequest $request, Client $client): RedirectResponse
     {
         DB::transaction(function () use ($request, $client): void {
-            $assessment = $this->assessmentFor($client);
+            $assessment = $this->pendingAssessmentFor($client);
             $notes = $request->validated('review_notes');
 
             $assessment->update([
@@ -130,13 +130,74 @@ class ClientAssessmentController extends Controller
         return redirect()->route('clients.assessments.edit', $client)->with('status', 'Client onboarding declined with review notes.');
     }
 
-    private function assessmentFor(Client $client): ClientAssessment
+    private function editableAssessmentFor(Client $client): ClientAssessment
     {
-        return $client->assessment()->firstOrCreate([], [
+        $latest = $this->latestAssessmentFor($client);
+
+        if ($latest === null) {
+            return $client->assessments()->create([
+                'assessment_date' => now()->toDateString(),
+                'assessment_type' => 'initial',
+                'status' => ClientAssessment::STATUS_ONBOARDING,
+                'version' => 1,
+            ]);
+        }
+
+        if ($latest->status === ClientAssessment::STATUS_ONBOARDING) {
+            return $latest;
+        }
+
+        return DB::transaction(fn (): ClientAssessment => $this->createNewVersionFrom($client, $latest));
+    }
+
+    private function pendingAssessmentFor(Client $client): ClientAssessment
+    {
+        $assessment = $client->assessments()
+            ->where('status', ClientAssessment::STATUS_PENDING)
+            ->latest('version')
+            ->first();
+
+        if ($assessment !== null) {
+            return $assessment;
+        }
+
+        return $this->latestAssessmentFor($client) ?? $this->editableAssessmentFor($client);
+    }
+
+    private function latestAssessmentFor(Client $client): ?ClientAssessment
+    {
+        return $client->assessments()->latest('version')->first();
+    }
+
+    private function createNewVersionFrom(Client $client, ClientAssessment $source): ClientAssessment
+    {
+        $source->loadMissing($this->sectionRelations());
+
+        $assessment = $client->assessments()->create([
+            'version' => ((int) $source->version) + 1,
             'assessment_date' => now()->toDateString(),
-            'assessment_type' => 'initial',
+            'assessor_name' => $source->assessor_name,
+            'assessment_type' => 'review',
+            'overall_summary' => $source->overall_summary,
+            'overall_risk_level' => $source->overall_risk_level,
+            'recommendations' => $source->recommendations,
+            'next_review_date' => $source->next_review_date,
             'status' => ClientAssessment::STATUS_ONBOARDING,
         ]);
+
+        foreach ($this->sectionRelations() as $relation) {
+            $section = $source->{$relation};
+
+            if ($section === null) {
+                continue;
+            }
+
+            $assessment->{$relation}()->create(collect($section->getAttributes())
+                ->except(['id', 'client_assessment_id', 'created_at', 'updated_at'])
+                ->all());
+        }
+
+        return $assessment;
     }
 
     /**

@@ -28,7 +28,7 @@ Route::middleware('auth')->group(function (): void {
     Route::prefix('homes/{home}')->name('homes.')->middleware('permission:home_users.manage')->group(function (): void {
         Route::resource('users', HomeUserController::class)->except(['show'])->names('users');
     });
-    Route::resource('clients', ClientController::class)->except(['show'])->middleware('permission:clients.manage');
+    Route::resource('clients', ClientController::class)->middleware('permission:clients.manage');
     Route::prefix('clients/{client}/assessment')->name('clients.assessments.')->middleware('permission:clients.manage')->group(function (): void {
         Route::get('/', [ClientAssessmentController::class, 'edit'])->name('edit');
         Route::put('/', [ClientAssessmentController::class, 'update'])->name('update');

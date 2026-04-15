@@ -36,7 +36,7 @@ Update Rules:
   - Notes:
     - Project scaffolding complete (`backend`, `frontend`)
     - Laravel login, local Bootstrap/Font Awesome UI shell, users/roles/permissions CRUD, permission middleware, home CRUD, logo upload, and home-scoped user management are implemented.
-    - Client onboarding CRUD is implemented with home assignment, core client contact/emergency fields, stepped onboarding assessments, pending review submission, and approve/decline adjudication notes.
+    - Client onboarding CRUD is implemented with home assignment, core client contact/emergency fields, stepped versioned onboarding assessments, pending review submission, client detail/history view, and approve/decline adjudication notes.
     - Role/permission checks are enforced for the implemented identity and home-management protected routes; broader Phase 0 enforcement remains open for future modules.
 
 ### Phase 1 — Minimum Care Loop
@@ -49,7 +49,7 @@ Update Rules:
   - [ ] Full audit trail exists for the loop
   - [ ] Care plan, scheduling, visit execution, and visit notes are implemented
   - Notes:
-    - Client onboarding assessments now capture master assessment, needs, functional, medical, capacity, risk, communication, equality, social, and environmental evidence before care planning.
+    - Client onboarding assessments now capture master assessment, needs, functional, medical, capacity, risk, communication, equality, social, and environmental evidence before care planning. Submitted assessment versions are retained for audit instead of overwritten.
 
 ### Phase 2 — Safety & Compliance Core
 - Status: `IN_PROGRESS`

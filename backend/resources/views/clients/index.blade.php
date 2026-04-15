@@ -67,6 +67,7 @@
                             </td>
                             <td>
                                 <div class="d-flex flex-wrap gap-2">
+                                    <a class="btn btn-sm btn-action" href="{{ route('clients.show', $client) }}"><i class="fa-solid fa-eye"></i>View</a>
                                     <a class="btn btn-sm btn-action btn-action-primary" href="{{ route('clients.assessments.edit', $client) }}"><i class="fa-solid fa-list-check"></i>Assessments</a>
                                     <button class="btn btn-sm btn-action" type="button" data-bs-toggle="modal" data-bs-target="#editClientModal{{ $client->id }}"><i class="fa-solid fa-pen"></i>Edit</button>
                                     <form method="POST" action="{{ route('clients.destroy', $client) }}" data-confirm data-confirm-title="{{ $client->status === 'active' ? 'Disable client?' : 'Activate client?' }}" data-confirm-text="{{ $client->status === 'active' ? 'Disabled clients will not appear in operational workflows.' : 'This client will become active again.' }}" data-confirm-button="{{ $client->status === 'active' ? 'Yes, disable' : 'Yes, activate' }}">

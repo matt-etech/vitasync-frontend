@@ -70,6 +70,7 @@ The UI is not decoration. It is a **safety-critical interface**.
 - Color = meaning (not decoration)
 - Never use red for styling
 - Use contrast for readability
+- Do not allow default Bootstrap blue interaction states on navigation, tabs, or workflow controls. Use VitaSync teal and neutral states.
 
 ---
 
@@ -182,6 +183,20 @@ Use consistent visual patterns:
 
 ---
 
+## 4.2.1 Tabs
+
+Tabs must use the VitaSync tab treatment, not raw Bootstrap defaults.
+
+### Rules
+- Active tabs use teal text with a teal top indicator.
+- Inactive tabs use neutral text.
+- Hover and focus states use a pale teal background with visible borders.
+- Tabs keep an 8px maximum radius on the top corners.
+- Horizontal tab lists may scroll on small screens but labels must remain readable.
+- Do not use blue tab text or blue active states.
+
+---
+
 ## 4.3 Timeline Component
 
 Used for:
@@ -246,7 +261,8 @@ Chronological clarity
 - Onboarding state must always be visible: onboarding, pending, approved, or declined.
 - Submission must move the record to pending review; approval/decline must be explicit actions.
 - Declines must capture review notes that tell the user what needs review before resubmission.
-- Editing a declined or approved assessment must return the onboarding record to onboarding state until resubmitted.
+- Editing a submitted, declined, or approved assessment must create a new assessment version. Do not overwrite completed assessment evidence.
+- Client detail pages must show submitted assessment history by version so review and adjudication decisions remain auditable.
 
 ---
 

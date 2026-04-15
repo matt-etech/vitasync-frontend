@@ -582,6 +582,41 @@
             color: #fff;
         }
 
+        .nav-tabs {
+            border-bottom: 1px solid var(--vitasync-line);
+            gap: .35rem;
+        }
+
+        .nav-tabs .nav-link {
+            border: 1px solid transparent;
+            border-radius: .5rem .5rem 0 0;
+            color: #475467;
+            font-weight: 800;
+            padding: .75rem 1rem;
+        }
+
+        .nav-tabs .nav-link:hover,
+        .nav-tabs .nav-link:focus {
+            background: #ecfdf9;
+            border-color: #99f6e4;
+            color: var(--vitasync-teal-dark);
+        }
+
+        .nav-tabs .nav-link.active {
+            background: #fff;
+            border-color: var(--vitasync-line) var(--vitasync-line) #fff;
+            color: var(--vitasync-teal-dark);
+            box-shadow: inset 0 3px 0 var(--vitasync-teal);
+        }
+
+        .nav-tabs.flex-nowrap {
+            scrollbar-width: thin;
+        }
+
+        .nav-tabs.flex-nowrap .nav-link {
+            white-space: nowrap;
+        }
+
         .modal-content {
             border: 1px solid var(--vitasync-line);
             border-radius: 1rem;
@@ -922,6 +957,25 @@
                 });
 
                 showStep(0);
+            });
+
+            document.querySelectorAll('[data-assessment-history]').forEach(function (history) {
+                const buttons = Array.from(history.querySelectorAll('[data-assessment-version-target]'));
+                const panels = Array.from(history.querySelectorAll('.assessment-version-panel'));
+
+                buttons.forEach(function (button) {
+                    button.addEventListener('click', function () {
+                        const target = button.dataset.assessmentVersionTarget;
+
+                        panels.forEach(function (panel) {
+                            panel.classList.toggle('d-none', panel.id !== target);
+                        });
+
+                        buttons.forEach(function (item) {
+                            item.classList.toggle('btn-action-primary', item === button);
+                        });
+                    });
+                });
             });
         });
     </script>

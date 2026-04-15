@@ -189,6 +189,10 @@ class ClientManagementTest extends TestCase
             ->put(route('clients.assessments.update', $client), $payload)
             ->assertRedirect(route('clients.assessments.edit', $client, absolute: false));
 
+        $this->assertSame(2, ClientAssessment::where('client_id', $client->id)->count());
+        $this->assertSame(ClientAssessment::STATUS_DECLINED, ClientAssessment::where('client_id', $client->id)->where('version', 1)->firstOrFail()->status);
+        $this->assertSame(ClientAssessment::STATUS_ONBOARDING, ClientAssessment::where('client_id', $client->id)->where('version', 2)->firstOrFail()->status);
+
         $this->actingAs($admin)
             ->post(route('clients.assessments.submit', $client))
             ->assertRedirect(route('clients.assessments.edit', $client, absolute: false));
@@ -198,5 +202,14 @@ class ClientManagementTest extends TestCase
             ->assertRedirect(route('clients.index', absolute: false));
 
         $this->assertSame(Client::ONBOARDING_STATUS_APPROVED, $client->fresh()->onboarding_status);
+        $this->assertSame(ClientAssessment::STATUS_APPROVED, ClientAssessment::where('client_id', $client->id)->where('version', 2)->firstOrFail()->status);
+
+        $this->actingAs($admin)
+            ->get(route('clients.show', $client))
+            ->assertOk()
+            ->assertSee('Asha Patel')
+            ->assertSee('Version 2')
+            ->assertSee('Version 1')
+            ->assertSee('Clarify medication support plan.');
     }
 }

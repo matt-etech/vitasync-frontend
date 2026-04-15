@@ -28,6 +28,30 @@ class ClientController extends Controller
         ]);
     }
 
+    public function show(Client $client): View
+    {
+        return view('clients.show', [
+            'client' => $client->load([
+                'home',
+                'reviewer',
+                'assessments' => fn ($query) => $query
+                    ->with([
+                        'reviewer',
+                        'needs',
+                        'functional',
+                        'medical',
+                        'mentalCapacity',
+                        'risk',
+                        'communication',
+                        'equality',
+                        'social',
+                        'environmental',
+                    ])
+                    ->latest('version'),
+            ]),
+        ]);
+    }
+
     public function store(StoreClientRequest $request): RedirectResponse
     {
         $client = Client::create(array_merge($request->validated(), [
