@@ -339,8 +339,16 @@
                     <p class="form-section-description">Record protected characteristics and adjustments needed for equitable care.</p>
                 </div>
                 <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label" for="equality_gender">Gender</label>
+                        <select class="form-select focus-ring-brand" id="equality_gender" name="equality[gender]">
+                            <option value="">Select gender</option>
+                            @foreach (['Male', 'Female'] as $gender)
+                                <option value="{{ $gender }}" @selected(old('equality.gender', $assessment->equality?->gender) === $gender)>{{ $gender }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                     @foreach ([
-                        'gender' => 'Gender',
                         'ethnicity' => 'Ethnicity',
                         'religion' => 'Religion',
                         'disability_status' => 'Disability status',

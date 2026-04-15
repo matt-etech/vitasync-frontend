@@ -19,7 +19,12 @@
             </div>
             <div class="col-md-4">
                 <label class="form-label" for="gender">Gender</label>
-                <input class="form-control focus-ring-brand" id="gender" name="gender" value="{{ old('gender', $client->gender) }}">
+                <select class="form-select focus-ring-brand" id="gender" name="gender">
+                    <option value="">Select gender</option>
+                    @foreach (['Male', 'Female'] as $gender)
+                        <option value="{{ $gender }}" @selected(old('gender', $client->gender) === $gender)>{{ $gender }}</option>
+                    @endforeach
+                </select>
             </div>
             <div class="col-md-4">
                 <label class="form-label" for="status">Status</label>

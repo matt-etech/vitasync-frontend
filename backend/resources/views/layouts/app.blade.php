@@ -224,6 +224,71 @@
             padding: 2rem;
         }
 
+        .login-stage {
+            align-items: center;
+            display: flex;
+            justify-content: center;
+            min-height: calc(100vh - 4rem);
+            overflow: hidden;
+            padding: 2rem 0;
+            position: relative;
+        }
+
+        .login-stage::before,
+        .login-stage::after {
+            content: "";
+            left: 50%;
+            pointer-events: none;
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 0;
+        }
+
+        .login-stage::before {
+            background:
+                linear-gradient(115deg, transparent 0 16%, rgba(15, 118, 110, .1) 16.2% 17.5%, transparent 17.7% 34%, rgba(244, 162, 48, .11) 34.2% 35.5%, transparent 35.7% 52%, rgba(19, 78, 74, .09) 52.2% 53.5%, transparent 53.7% 70%, rgba(15, 118, 110, .08) 70.2% 71.5%, transparent 71.7%),
+                repeating-linear-gradient(115deg, rgba(19, 78, 74, .12) 0 1px, transparent 1px 7px),
+                repeating-linear-gradient(245deg, rgba(244, 162, 48, .08) 0 1px, transparent 1px 9px);
+            clip-path: none;
+            height: 100%;
+            left: 0;
+            opacity: .34;
+            top: 0;
+            transform: none;
+            width: 100%;
+        }
+
+        .login-stage::after {
+            background:
+                linear-gradient(55deg, transparent 0 20%, rgba(15, 118, 110, .1) 20.2% 22.2%, transparent 22.4% 45%, rgba(244, 162, 48, .11) 45.2% 47.2%, transparent 47.4% 72%, rgba(19, 78, 74, .1) 72.2% 74.2%, transparent 74.4%),
+                repeating-linear-gradient(55deg, rgba(15, 118, 110, .08) 0 1px, transparent 1px 8px);
+            clip-path: none;
+            height: 100%;
+            left: 0;
+            opacity: .26;
+            top: 0;
+            transform: none;
+            width: 100%;
+        }
+
+        .login-panel {
+            max-width: 31rem;
+            position: relative;
+            width: 100%;
+            z-index: 1;
+        }
+
+        .login-logo {
+            height: 4.75rem;
+            object-fit: contain;
+            width: 4.75rem;
+        }
+
+        .login-card {
+            border-radius: 1rem;
+        }
+
         .form-workspace {
             background: #fff;
             border: 1px solid var(--vitasync-line);

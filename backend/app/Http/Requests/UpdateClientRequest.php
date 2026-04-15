@@ -22,7 +22,7 @@ class UpdateClientRequest extends FormRequest
             'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
             'date_of_birth' => ['nullable', 'date', 'before_or_equal:today'],
-            'gender' => ['nullable', 'string', 'max:100'],
+            'gender' => ['nullable', Rule::in(['Male', 'Female'])],
             'phone' => ['nullable', 'string', 'max:50'],
             'email' => ['nullable', 'email', 'max:255'],
             'address' => ['nullable', 'string', 'max:2000'],

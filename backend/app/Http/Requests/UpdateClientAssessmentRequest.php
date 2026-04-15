@@ -85,7 +85,7 @@ class UpdateClientAssessmentRequest extends FormRequest
             'communication.communication_aids' => $nullableText,
             'communication.notes' => $nullableText,
 
-            'equality.gender' => $nullableShortText,
+            'equality.gender' => ['nullable', Rule::in(['Male', 'Female'])],
             'equality.ethnicity' => $nullableShortText,
             'equality.religion' => $nullableShortText,
             'equality.disability_status' => $nullableShortText,
