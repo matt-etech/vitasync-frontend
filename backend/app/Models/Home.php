@@ -56,6 +56,14 @@ class Home extends Model
         return $this->hasMany(Client::class);
     }
 
+    /**
+     * @return HasMany<CarePlan, $this>
+     */
+    public function carePlans(): HasMany
+    {
+        return $this->hasMany(CarePlan::class);
+    }
+
     public function logoUrl(): ?string
     {
         if ($this->logo_path === null) {

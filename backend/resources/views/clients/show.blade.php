@@ -26,6 +26,12 @@
             'declined' => 'text-bg-danger',
         ][$status] ?? 'text-bg-secondary';
 
+        $carePlanBadgeClass = fn (string $status): string => [
+            'draft' => 'text-bg-warning',
+            'active' => 'text-bg-success',
+            'inactive' => 'text-bg-secondary',
+        ][$status] ?? 'text-bg-secondary';
+
         $sectionRows = function (?object $section, array $fields): array {
             if ($section === null) {
                 return [];
@@ -64,9 +70,53 @@
                 'environmental' => ['label' => 'Environmental', 'rows' => $sectionRows($assessment->environmental, ['home_condition' => 'Home condition', 'safety_hazards' => 'Safety hazards', 'accessibility' => 'Accessibility', 'equipment_needed' => 'Equipment needed', 'fire_risk' => 'Fire risk', 'cleanliness_level' => 'Cleanliness', 'notes' => 'Notes'])],
             ];
         };
+
+        $carePlanSections = function ($plan): array {
+            return [
+                'plan' => [
+                    'label' => 'Plan',
+                    'rows' => [
+                        ['Title', $plan->title],
+                        ['Type', $plan->plan_type],
+                        ['Care level', $plan->care_level],
+                        ['Visit frequency', $plan->visit_frequency],
+                        ['Start date', $plan->start_date?->format('Y-m-d')],
+                        ['Review date', $plan->review_date?->format('Y-m-d')],
+                        ['Review frequency', $plan->review_frequency],
+                        ['Status', ucfirst($plan->status)],
+                        ['Goals and outcomes', $plan->care_goals],
+                    ],
+                ],
+                'support' => [
+                    'label' => 'Support',
+                    'rows' => [
+                        ['Personal care level', $plan->personal_care_level],
+                        ['Personal care notes', $plan->personal_care_support],
+                        ['Mobility level', $plan->mobility_level],
+                        ['Mobility notes', $plan->mobility_support],
+                        ['Nutrition support level', $plan->nutrition_support_level],
+                        ['Nutrition and hydration notes', $plan->nutrition_hydration_support],
+                        ['Medication support level', $plan->medication_support_level],
+                        ['Medication notes', $plan->medication_support],
+                        ['Communication support level', $plan->communication_support_level],
+                        ['Communication notes', $plan->communication_support],
+                    ],
+                ],
+                'safety' => [
+                    'label' => 'Safety and review',
+                    'rows' => [
+                        ['Risk level', $plan->risk_level],
+                        ['Risk management', $plan->risk_management],
+                        ['Preferences and routines', $plan->preferences_routines],
+                        ['Escalation instructions', $plan->escalation_instructions],
+                        ['Review notes', $plan->review_notes],
+                    ],
+                ],
+            ];
+        };
     @endphp
 
-    <x-page-header title="{{ $client->fullName() }}" description="View client details and assessment history retained for audit.">
+    <x-page-header title="{{ $client->fullName() }}" description="View client details, assessment history, and care plans retained for audit.">
         <x-slot:action>
             <div class="d-flex flex-wrap gap-2">
                 <a class="btn btn-outline-secondary" href="{{ route('clients.index') }}"><i class="fa-solid fa-arrow-left me-1"></i>Clients</a>
@@ -83,6 +133,9 @@
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="client-assessments-tab" data-bs-toggle="tab" data-bs-target="#client-assessments-pane" type="button" role="tab" aria-controls="client-assessments-pane" aria-selected="false">Assessments</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="client-care-plans-tab" data-bs-toggle="tab" data-bs-target="#client-care-plans-pane" type="button" role="tab" aria-controls="client-care-plans-pane" aria-selected="false">Care Plans</button>
                 </li>
             </ul>
 
@@ -220,7 +273,148 @@
                         @endforeach
                     @endif
                 </div>
+
+                <div class="tab-pane fade" id="client-care-plans-pane" role="tabpanel" aria-labelledby="client-care-plans-tab" tabindex="0">
+                    <div class="d-flex flex-column flex-md-row gap-2 justify-content-md-between mb-3">
+                        <div>
+                            <p class="section-kicker mb-2">Care Planning</p>
+                            <h2 class="h4 fw-bold mb-0">Care Plan Details</h2>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2 align-items-start">
+                            <span class="text-secondary fw-semibold">{{ $client->carePlans->count() }} total plans</span>
+                            @if (auth()->user()->hasPermission('care_plans.manage') && $client->status === 'active')
+                                <button class="btn btn-sm btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#createClientCarePlanModal"><i class="fa-solid fa-plus me-1"></i>New care plan</button>
+                                <a class="btn btn-sm btn-action btn-action-primary" href="{{ route('care-plans.index') }}"><i class="fa-solid fa-clipboard-list"></i>Manage care plans</a>
+                            @endif
+                        </div>
+                    </div>
+
+                    @if ($client->carePlans->isEmpty())
+                        <div class="alert alert-info mb-0">No care plans have been created for this client yet.</div>
+                    @else
+                        <div class="table-responsive mb-4">
+                            <table class="table align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Care plan</th>
+                                        <th>Type</th>
+                                        <th>Care level</th>
+                                        <th>Risk</th>
+                                        <th>Review</th>
+                                        <th>Status</th>
+                                        @if (auth()->user()->hasPermission('care_plans.manage') && $client->status === 'active')
+                                            <th class="text-end">Action</th>
+                                        @endif
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($client->carePlans as $plan)
+                                        <tr>
+                                            <td>
+                                                <p class="fw-bold mb-0">{{ $plan->title }}</p>
+                                                <p class="text-secondary mb-0">Started {{ $plan->start_date?->format('Y-m-d') ?: 'not recorded' }}</p>
+                                            </td>
+                                            <td>{{ $plan->plan_type ?: 'Not set' }}</td>
+                                            <td>{{ $plan->care_level ?: 'Not set' }}</td>
+                                            <td>{{ $plan->risk_level ?: 'Not set' }}</td>
+                                            <td>
+                                                <p class="mb-0">{{ $plan->review_date?->format('Y-m-d') ?: 'Not scheduled' }}</p>
+                                                <p class="text-secondary mb-0">{{ $plan->review_frequency ?: '' }}</p>
+                                            </td>
+                                            <td><span class="badge {{ $carePlanBadgeClass($plan->status) }}">{{ ucfirst($plan->status) }}</span></td>
+                                            @if (auth()->user()->hasPermission('care_plans.manage') && $client->status === 'active')
+                                                <td class="text-end">
+                                                    <button class="btn btn-sm btn-action" type="button" data-bs-toggle="modal" data-bs-target="#editClientCarePlanModal{{ $plan->id }}"><i class="fa-solid fa-pen"></i>Edit</button>
+                                                </td>
+                                            @endif
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="d-grid gap-3">
+                            @foreach ($client->carePlans as $plan)
+                                @php($sections = $carePlanSections($plan))
+                                <section class="border rounded p-3 p-md-4">
+                                    <div class="d-flex flex-column flex-md-row gap-2 justify-content-md-between mb-3">
+                                        <div>
+                                            <h3 class="h5 fw-bold mb-1">{{ $plan->title }}</h3>
+                                            <p class="text-secondary mb-0">{{ $plan->plan_type }} plan from {{ $plan->start_date?->format('Y-m-d') ?: 'not recorded' }}</p>
+                                        </div>
+                                        <span class="badge {{ $carePlanBadgeClass($plan->status) }} align-self-start">{{ ucfirst($plan->status) }}</span>
+                                    </div>
+
+                                    <ul class="nav nav-tabs flex-nowrap overflow-auto" id="carePlanTabs{{ $plan->id }}" role="tablist">
+                                        @foreach ($sections as $key => $section)
+                                            <li class="nav-item" role="presentation">
+                                                <button class="nav-link {{ $loop->first ? 'active' : '' }}" id="care-plan-{{ $plan->id }}-{{ $key }}-tab" data-bs-toggle="tab" data-bs-target="#care-plan-{{ $plan->id }}-{{ $key }}-pane" type="button" role="tab" aria-controls="care-plan-{{ $plan->id }}-{{ $key }}-pane" aria-selected="{{ $loop->first ? 'true' : 'false' }}">
+                                                    {{ $section['label'] }}
+                                                </button>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+
+                                    <div class="tab-content pt-4" id="carePlanTabsContent{{ $plan->id }}">
+                                        @foreach ($sections as $key => $section)
+                                            <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}" id="care-plan-{{ $plan->id }}-{{ $key }}-pane" role="tabpanel" aria-labelledby="care-plan-{{ $plan->id }}-{{ $key }}-tab" tabindex="0">
+                                                @php($rows = collect($section['rows'])->filter(fn (array $row): bool => filled($row[1]))->all())
+                                                @if ($rows === [])
+                                                    <p class="text-secondary mb-0">No details recorded for this section.</p>
+                                                @else
+                                                    <dl class="row g-3 mb-0">
+                                                        @foreach ($rows as [$label, $value])
+                                                            <dt class="col-md-4 text-secondary">{{ $label }}</dt>
+                                                            <dd class="col-md-8 mb-0">{{ $value }}</dd>
+                                                        @endforeach
+                                                    </dl>
+                                                @endif
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </section>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
             </div>
         </div>
     </div>
+
+    @if (auth()->user()->hasPermission('care_plans.manage') && $client->status === 'active')
+        <div class="modal fade" id="createClientCarePlanModal" tabindex="-1" aria-labelledby="createClientCarePlanModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                <form class="modal-content" method="POST" action="{{ route('care-plans.store') }}">
+                    @csrf
+                    <input type="hidden" name="return_to_client_id" value="{{ $client->id }}">
+                    <div class="modal-header">
+                        <h2 class="modal-title h5" id="createClientCarePlanModalLabel">New care plan for {{ $client->fullName() }}</h2>
+                        <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        @include('care-plans.partials.form', ['carePlan' => $newCarePlan, 'clients' => $carePlanClients, 'submitLabel' => 'Create care plan', 'formId' => 'client_show_create'])
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        @foreach ($client->carePlans as $editPlan)
+            <div class="modal fade" id="editClientCarePlanModal{{ $editPlan->id }}" tabindex="-1" aria-labelledby="editClientCarePlanModalLabel{{ $editPlan->id }}" aria-hidden="true">
+                <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                    <form class="modal-content" method="POST" action="{{ route('care-plans.update', $editPlan) }}">
+                        @csrf
+                        @method('PUT')
+                        <input type="hidden" name="return_to_client_id" value="{{ $client->id }}">
+                        <div class="modal-header">
+                            <h2 class="modal-title h5" id="editClientCarePlanModalLabel{{ $editPlan->id }}">Edit {{ $editPlan->title }}</h2>
+                            <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            @include('care-plans.partials.form', ['carePlan' => $editPlan, 'clients' => $carePlanClients, 'submitLabel' => 'Update care plan', 'formId' => 'client_show_edit_'.$editPlan->id])
+                        </div>
+                    </form>
+                </div>
+            </div>
+        @endforeach
+    @endif
 @endsection

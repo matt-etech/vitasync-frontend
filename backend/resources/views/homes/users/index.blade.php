@@ -52,6 +52,12 @@
                             <td><span class="badge text-bg-{{ $user->is_active ? 'success' : 'secondary' }}">{{ $user->is_active ? 'Active' : 'Inactive' }}</span></td>
                             <td>
                                 <div class="d-flex flex-wrap gap-2">
+                                    @if (auth()->user()->hasPermission('users.impersonate') && $user->is_active && (int) auth()->id() !== (int) $user->id)
+                                        <form method="POST" action="{{ route('homes.users.impersonate', [$home, $user]) }}" data-confirm data-confirm-title="Impersonate home user?" data-confirm-text="You will temporarily act as {{ $user->name }} and see the system with their access." data-confirm-button="Yes, impersonate">
+                                            @csrf
+                                            <button class="btn btn-sm btn-action btn-action-primary" type="submit"><i class="fa-solid fa-user-shield"></i>Impersonate</button>
+                                        </form>
+                                    @endif
                                     <button class="btn btn-sm btn-action" type="button" data-bs-toggle="modal" data-bs-target="#editHomeUserModal{{ $user->id }}"><i class="fa-solid fa-pen"></i>Edit</button>
                                     <form method="POST" action="{{ route('homes.users.destroy', [$home, $user]) }}" data-confirm data-confirm-title="{{ $user->is_active ? 'Disable home user?' : 'Activate home user?' }}" data-confirm-text="{{ $user->is_active ? 'Disabled users cannot be used for active operations.' : 'This user will become active again.' }}" data-confirm-button="{{ $user->is_active ? 'Yes, disable' : 'Yes, activate' }}">
                                         @csrf

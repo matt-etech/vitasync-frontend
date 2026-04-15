@@ -1,6 +1,6 @@
 # VitaSync Roadmap Status
 
-Last Updated: 2026-04-14
+Last Updated: 2026-04-15
 Source of truth:
 - `Requirements.md` (phase scope and exit criteria)
 - `AGENTS.md` (engineering and quality rules)
@@ -36,6 +36,7 @@ Update Rules:
   - Notes:
     - Project scaffolding complete (`backend`, `frontend`)
     - Laravel login, local Bootstrap/Font Awesome UI shell, users/roles/permissions CRUD, permission middleware, home CRUD, logo upload, and home-scoped user management are implemented.
+    - Administrator impersonation for active home users is implemented with explicit session banner and return-to-admin flow.
     - Client onboarding CRUD is implemented with home assignment, core client contact/emergency fields, stepped versioned onboarding assessments, pending review submission, client detail/history view, and approve/decline adjudication notes.
     - Role/permission checks are enforced for the implemented identity and home-management protected routes; broader Phase 0 enforcement remains open for future modules.
 
@@ -45,11 +46,13 @@ Update Rules:
   - [ ] End-to-end care loop completes
   - [x] Client record can be created
   - [x] Basic onboarding assessment can be recorded
+  - [x] Basic care plan CRUD is implemented
   - [ ] EVV check-in/check-out timestamps captured and linked to visits
   - [ ] Full audit trail exists for the loop
-  - [ ] Care plan, scheduling, visit execution, and visit notes are implemented
+  - [ ] Scheduling, visit execution, EVV, and visit notes are implemented
   - Notes:
     - Client onboarding assessments now capture master assessment, needs, functional, medical, capacity, risk, communication, equality, social, and environmental evidence before care planning. Submitted assessment versions are retained for audit instead of overwritten.
+    - Care plan management now supports active-client linked plans, structured dropdowns for standard care planning values, narrative support notes, review scheduling, disable/activate status control, and create/edit access from the client detail Care Plans tab.
 
 ### Phase 2 — Safety & Compliance Core
 - Status: `IN_PROGRESS`

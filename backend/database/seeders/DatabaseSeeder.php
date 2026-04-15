@@ -19,9 +19,11 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $permissions = collect([
+            ['name' => 'care_plans.manage', 'description' => 'Create, update, and manage client care plans.'],
             ['name' => 'clients.manage', 'description' => 'Create, update, and remove client records.'],
             ['name' => 'homes.manage', 'description' => 'Create, update, and remove care homes.'],
             ['name' => 'home_users.manage', 'description' => 'Create, update, and remove users assigned to a home.'],
+            ['name' => 'users.impersonate', 'description' => 'Impersonate active home users for support and verification.'],
             ['name' => 'users.manage', 'description' => 'Create, update, and remove user accounts.'],
             ['name' => 'roles.manage', 'description' => 'Create, update, and remove roles.'],
             ['name' => 'permissions.manage', 'description' => 'Create, update, and remove permissions.'],

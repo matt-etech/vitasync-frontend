@@ -108,6 +108,70 @@ class HomeManagementTest extends TestCase
         $this->assertTrue($createdUser->permissions()->whereKey($permission->id)->exists());
     }
 
+    public function test_administrator_can_impersonate_and_return_from_active_home_user(): void
+    {
+        $admin = $this->adminUser();
+        $home = Home::create([
+            'name' => 'Pine Lodge',
+            'address_line_1' => '2 Care Street',
+            'city' => 'Cardiff',
+            'postcode' => 'CF1 1AA',
+            'country' => 'United Kingdom',
+            'status' => 'active',
+        ]);
+        $homeUser = User::create([
+            'home_id' => $home->id,
+            'name' => 'Pine Worker',
+            'email' => 'pine.worker@example.com',
+            'password' => Hash::make('password'),
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($admin)
+            ->post(route('homes.users.impersonate', [$home, $homeUser]))
+            ->assertRedirect(route('dashboard', absolute: false))
+            ->assertSessionHas('impersonator_id', $admin->id);
+
+        $this->assertAuthenticatedAs($homeUser);
+
+        $this->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('Impersonating Pine Worker')
+            ->assertSee('Return to admin');
+
+        $this->delete(route('impersonation.destroy'))
+            ->assertRedirect(route('homes.users.index', $home, absolute: false));
+
+        $this->assertAuthenticatedAs($admin);
+        $this->assertFalse(session()->has('impersonator_id'));
+    }
+
+    public function test_inactive_home_user_cannot_be_impersonated(): void
+    {
+        $admin = $this->adminUser();
+        $home = Home::create([
+            'name' => 'Pine Lodge',
+            'address_line_1' => '2 Care Street',
+            'city' => 'Cardiff',
+            'postcode' => 'CF1 1AA',
+            'country' => 'United Kingdom',
+            'status' => 'active',
+        ]);
+        $homeUser = User::create([
+            'home_id' => $home->id,
+            'name' => 'Inactive Worker',
+            'email' => 'inactive.worker@example.com',
+            'password' => Hash::make('password'),
+            'is_active' => false,
+        ]);
+
+        $this->actingAs($admin)
+            ->post(route('homes.users.impersonate', [$home, $homeUser]))
+            ->assertForbidden();
+
+        $this->assertAuthenticatedAs($admin);
+    }
+
     private function adminUser(): User
     {
         $user = User::create([
@@ -126,6 +190,11 @@ class HomeManagementTest extends TestCase
                 'name' => 'home_users.manage',
             ], [
                 'description' => 'Manage home users.',
+            ])->id,
+            Permission::firstOrCreate([
+                'name' => 'users.impersonate',
+            ], [
+                'description' => 'Impersonate home users.',
             ])->id,
         ]);
 

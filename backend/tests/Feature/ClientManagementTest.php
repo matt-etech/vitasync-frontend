@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\CarePlan;
 use App\Models\Client;
 use App\Models\ClientAssessment;
 use App\Models\Home;
@@ -210,13 +211,37 @@ class ClientManagementTest extends TestCase
         $this->assertSame(Client::ONBOARDING_STATUS_APPROVED, $client->fresh()->onboarding_status);
         $this->assertSame(ClientAssessment::STATUS_APPROVED, ClientAssessment::where('client_id', $client->id)->where('version', 2)->firstOrFail()->status);
 
+        $admin->permissions()->attach(Permission::create([
+            'name' => 'care_plans.manage',
+            'description' => 'Manage care plans.',
+        ]));
+        CarePlan::create([
+            'home_id' => $home->id,
+            'client_id' => $client->id,
+            'title' => 'Morning support plan',
+            'plan_type' => 'Initial',
+            'care_level' => 'Medium',
+            'visit_frequency' => 'Daily',
+            'review_frequency' => 'Monthly',
+            'start_date' => now()->toDateString(),
+            'review_date' => now()->addMonth()->toDateString(),
+            'care_goals' => 'Keep morning routine safe and consistent.',
+            'personal_care_level' => 'Prompting',
+            'risk_level' => 'Medium',
+            'status' => 'active',
+        ]);
+
         $this->actingAs($admin)
             ->get(route('clients.show', $client))
             ->assertOk()
             ->assertSee('Asha Patel')
             ->assertSee('Version 2')
             ->assertSee('Version 1')
-            ->assertSee('Clarify medication support plan.');
+            ->assertSee('Clarify medication support plan.')
+            ->assertSee('Care Plans')
+            ->assertSee('Morning support plan')
+            ->assertSee('New care plan')
+            ->assertSee('Edit Morning support plan');
     }
 
     public function test_open_onboarding_assessment_is_resumed_without_creating_another_version(): void

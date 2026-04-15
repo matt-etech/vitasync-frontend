@@ -1,7 +1,7 @@
 # VitaSync Design Guidelines & Branding System  
 ### For a Regulated Care Operating Platform
 
-Last Updated: 2026-04-14
+Last Updated: 2026-04-15
 Related Documents:
 - `Requirements.md` (phase workflow priorities)
 - `AGENTS.md` (engineering and validation rules)
@@ -258,6 +258,23 @@ Chronological clarity
 - Only the current assessment step should be shown; users move with Previous/Next controls or the step list.
 - Assessment steps must include a master assessment record plus needs, functional, medical, mental capacity, risk, communication, equality, social, and environmental sections.
 - Each assessment section must group evidence fields under clear clinical headings and keep notes close to the related evidence.
+
+### Care Plan Forms
+- Care plan create and edit actions must remain modal-first from the care plan index unless a future care planning workflow becomes clinically multi-step.
+- Use controlled dropdowns for fields with standard operational values, including plan type, care level, visit frequency, review frequency, personal care level, mobility level, nutrition support level, medication support level, communication support level, risk level, and status.
+- Keep narrative textareas for goals, practical support notes, preferences, escalation instructions, risk controls, and review notes.
+- Care plans must be linked to an active client; inactive clients must not appear in care plan assignment dropdowns.
+- Review date, review frequency, status, and risk level must remain visible because they drive safety follow-up.
+- Disable/activate care plans with SweetAlert confirmation. Disabled care plans may appear only on the care plan management page so they can be reactivated when appropriate.
+- Client detail pages must include a Care Plans tab showing the client's care plan summary and full plan sections.
+- When a care plan is created or edited from the client detail page, keep the user on that client record after submission.
+
+### Administrator Impersonation
+- Impersonation must be visibly stateful. Every impersonated session must show a persistent high-contrast banner naming the impersonated user and the administrator who started it.
+- Provide a clear "Return to admin" action on every authenticated page while impersonating.
+- Impersonation entry points must use SweetAlert confirmation and must explain that the administrator will temporarily act with the target user's access.
+- Only active home users may be impersonated. Disabled users must not show an impersonation action.
+- Do not hide the current home context while impersonating; home identity must remain visible in the header.
 - Onboarding state must always be visible: onboarding, pending, approved, or declined.
 - Submission must move the record to pending review; approval/decline must be explicit actions.
 - Declines must capture review notes that tell the user what needs review before resubmission.

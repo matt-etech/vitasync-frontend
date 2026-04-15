@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreClientRequest;
 use App\Http\Requests\UpdateClientRequest;
+use App\Models\CarePlan;
 use App\Models\Client;
 use App\Models\Home;
 use Illuminate\Http\RedirectResponse;
@@ -34,26 +35,35 @@ class ClientController extends Controller
 
     public function show(Client $client): View
     {
+        $client->load([
+            'home',
+            'reviewer',
+            'assessment',
+            'carePlans' => fn ($query) => $query->latest('start_date')->latest('id'),
+            'assessments' => fn ($query) => $query
+                ->with([
+                    'reviewer',
+                    'needs',
+                    'functional',
+                    'medical',
+                    'mentalCapacity',
+                    'risk',
+                    'communication',
+                    'equality',
+                    'social',
+                    'environmental',
+                ])
+                ->latest('version'),
+        ]);
+
         return view('clients.show', [
-            'client' => $client->load([
-                'home',
-                'reviewer',
-                'assessment',
-                'assessments' => fn ($query) => $query
-                    ->with([
-                        'reviewer',
-                        'needs',
-                        'functional',
-                        'medical',
-                        'mentalCapacity',
-                        'risk',
-                        'communication',
-                        'equality',
-                        'social',
-                        'environmental',
-                    ])
-                    ->latest('version'),
+            'client' => $client,
+            'newCarePlan' => new CarePlan([
+                'client_id' => $client->id,
+                'start_date' => now()->toDateString(),
+                'status' => 'draft',
             ]),
+            'carePlanClients' => collect([$client]),
         ]);
     }
 

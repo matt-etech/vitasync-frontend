@@ -628,6 +628,20 @@
             background: #f8fafc;
             border-color: var(--vitasync-line);
         }
+
+        .impersonation-banner {
+            align-items: center;
+            background: #fffbeb;
+            border: 1px solid #fbbf24;
+            border-radius: .75rem;
+            color: #78350f;
+            display: flex;
+            flex-wrap: wrap;
+            gap: .75rem;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding: .85rem 1rem;
+        }
     </style>
 </head>
 <body>
@@ -649,13 +663,17 @@
                                     <span class="avatar-initial d-inline-flex align-items-center justify-content-center">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</span>
                                     <span>
                                         <span class="d-block fw-bold">{{ auth()->user()->name }}</span>
-                                        <span class="d-block small text-secondary">Admin{{ auth()->user()->home ? ' - '.auth()->user()->home->name : '' }}</span>
+                                        <span class="d-block small text-secondary">{{ session('impersonator_id') ? 'Impersonating' : 'Admin' }}{{ auth()->user()->home ? ' - '.auth()->user()->home->name : '' }}</span>
                                     </span>
                                 </div>
-                                @if (auth()->user()->home)
+                                @if (auth()->user()->home && auth()->user()->hasPermission('home_users.manage'))
                                     <a class="btn btn-outline-dark" href="{{ route('homes.users.index', auth()->user()->home) }}">
                                         <i class="fa-solid fa-house me-2"></i>{{ auth()->user()->home->name }}
                                     </a>
+                                @elseif (auth()->user()->home)
+                                    <span class="btn btn-outline-dark disabled" aria-disabled="true">
+                                        <i class="fa-solid fa-house me-2"></i>{{ auth()->user()->home->name }}
+                                    </span>
                                 @elseif (auth()->user()->hasPermission('homes.manage'))
                                     <a class="btn btn-outline-dark" href="{{ route('homes.index') }}">
                                         <i class="fa-solid fa-house me-2"></i>Homes
@@ -720,19 +738,29 @@
                                     </ul>
                                 </li>
                                 @endif
-                                @if (auth()->user()->hasPermission('clients.manage'))
+                                @if (auth()->user()->hasPermission('clients.manage') || auth()->user()->hasPermission('care_plans.manage'))
                                 <li class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle {{ request()->routeIs('clients.*') ? 'active' : '' }}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <a class="nav-link dropdown-toggle {{ request()->routeIs('clients.*') || request()->routeIs('care-plans.*') ? 'active' : '' }}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                         <i class="fa-solid fa-briefcase-medical me-2"></i>Care
                                     </a>
                                     <ul class="dropdown-menu mega-menu">
                                         <li><span class="dropdown-header section-kicker">Care Operations</span></li>
+                                        @if (auth()->user()->hasPermission('clients.manage'))
                                         <li>
                                             <a class="dropdown-item d-flex gap-2" href="{{ route('clients.index') }}">
                                                 <span class="menu-icon"><i class="fa-solid fa-user-group"></i></span>
                                                 <span><span class="d-block fw-bold">Clients</span><span class="d-block text-secondary small">Onboard and manage client records.</span></span>
                                             </a>
                                         </li>
+                                        @endif
+                                        @if (auth()->user()->hasPermission('care_plans.manage'))
+                                        <li>
+                                            <a class="dropdown-item d-flex gap-2" href="{{ route('care-plans.index') }}">
+                                                <span class="menu-icon"><i class="fa-solid fa-clipboard-list"></i></span>
+                                                <span><span class="d-block fw-bold">Care Plans</span><span class="d-block text-secondary small">Plan goals, support needs, risks, and reviews.</span></span>
+                                            </a>
+                                        </li>
+                                        @endif
                                     </ul>
                                 </li>
                                 @endif
@@ -744,6 +772,22 @@
         @endauth
 
         <main class="container-fluid py-4">
+            @auth
+                @if (session('impersonator_id'))
+                    <div class="impersonation-banner">
+                        <div>
+                            <strong>Impersonating {{ session('impersonated_user_name', auth()->user()->name) }}</strong>
+                            <span class="d-block small">Started by {{ session('impersonator_name', 'administrator') }}. Return before making administrator-level changes.</span>
+                        </div>
+                        <form method="POST" action="{{ route('impersonation.destroy') }}">
+                            @csrf
+                            @method('DELETE')
+                            <button class="btn btn-outline-dark" type="submit"><i class="fa-solid fa-user-shield me-1"></i>Return to admin</button>
+                        </form>
+                    </div>
+                @endif
+            @endauth
+
             @yield('breadcrumbs')
 
             @if (session('status'))
