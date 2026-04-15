@@ -328,11 +328,58 @@
             text-decoration: none;
         }
 
+        .assessment-steps button {
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: .5rem;
+            color: #344054;
+            display: block;
+            font-weight: 700;
+            padding: .65rem .75rem;
+            text-align: left;
+            width: 100%;
+        }
+
         .assessment-steps a:hover,
-        .assessment-steps a:focus {
+        .assessment-steps a:focus,
+        .assessment-steps button:hover,
+        .assessment-steps button:focus,
+        .assessment-steps button.active {
             background: #ecfdf9;
             border-color: #99f6e4;
             color: var(--vitasync-teal-dark);
+        }
+
+        .assessment-step-panel {
+            display: none;
+        }
+
+        .assessment-step-panel.active {
+            display: block;
+        }
+
+        .assessment-progress-shell {
+            background: #f8fafc;
+            border-bottom: 1px solid var(--vitasync-line);
+            padding: 1.25rem 1.5rem;
+        }
+
+        .assessment-progress-meta {
+            color: #344054;
+            display: flex;
+            font-weight: 800;
+            justify-content: space-between;
+            margin-bottom: .65rem;
+        }
+
+        .assessment-progress-shell .progress {
+            background: #e4e7ec;
+            border-radius: .5rem;
+            height: .75rem;
+        }
+
+        .assessment-progress-shell .progress-bar {
+            background: var(--vitasync-teal-dark);
         }
 
         @media (min-width: 1200px) {
@@ -650,6 +697,11 @@
 
             document.querySelectorAll('[data-vitasync-datatable]').forEach(function (table) {
                 const exportTitle = table.getAttribute('data-export-title') || document.title;
+                table.querySelectorAll('tbody tr').forEach(function (row) {
+                    if (row.children.length === 1 && row.querySelector('td[colspan]')) {
+                        row.remove();
+                    }
+                });
 
                 $(table).DataTable({
                     pageLength: 10,
@@ -743,8 +795,68 @@
                         search: '',
                         searchPlaceholder: 'Search records',
                         lengthMenu: 'Show _MENU_',
+                        emptyTable: 'No records found',
                     }
                 });
+            });
+
+            document.querySelectorAll('[data-assessment-stepper]').forEach(function (form) {
+                const panels = Array.from(form.querySelectorAll('[data-step-panel]'));
+                const controls = Array.from(document.querySelectorAll('[data-step-target]'));
+                const progress = form.querySelector('[data-step-progress]');
+                const currentLabel = form.querySelector('[data-step-current]');
+                const totalLabel = form.querySelector('[data-step-total]');
+                const previousButton = form.querySelector('[data-step-previous]');
+                const nextButton = form.querySelector('[data-step-next]');
+                let currentStep = 0;
+
+                if (totalLabel) {
+                    totalLabel.textContent = panels.length;
+                }
+
+                function showStep(index) {
+                    currentStep = Math.max(0, Math.min(index, panels.length - 1));
+
+                    panels.forEach(function (panel, panelIndex) {
+                        panel.classList.toggle('active', panelIndex === currentStep);
+                    });
+
+                    controls.forEach(function (control) {
+                        control.classList.toggle('active', Number(control.dataset.stepTarget) === currentStep);
+                    });
+
+                    if (progress) {
+                        progress.style.width = (((currentStep + 1) / panels.length) * 100) + '%';
+                    }
+
+                    if (currentLabel) {
+                        currentLabel.textContent = currentStep + 1;
+                    }
+
+                    if (previousButton) {
+                        previousButton.disabled = currentStep === 0;
+                    }
+
+                    if (nextButton) {
+                        nextButton.classList.toggle('d-none', currentStep === panels.length - 1);
+                    }
+                }
+
+                controls.forEach(function (control) {
+                    control.addEventListener('click', function () {
+                        showStep(Number(control.dataset.stepTarget));
+                    });
+                });
+
+                previousButton?.addEventListener('click', function () {
+                    showStep(currentStep - 1);
+                });
+
+                nextButton?.addEventListener('click', function () {
+                    showStep(currentStep + 1);
+                });
+
+                showStep(0);
             });
         });
     </script>

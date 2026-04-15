@@ -46,10 +46,6 @@
                             </div>
                         </td>
                     </tr>
-                @empty
-                    <tr>
-                        <td class="py-5 text-center text-secondary" colspan="4">No permissions have been created yet.</td>
-                    </tr>
                 @endforelse
             </tbody>
         </table>

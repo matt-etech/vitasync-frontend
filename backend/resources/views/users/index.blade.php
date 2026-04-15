@@ -65,10 +65,6 @@
                             </div>
                         </td>
                     </tr>
-                @empty
-                    <tr>
-                        <td class="py-5 text-center text-secondary" colspan="6">No users have been created yet.</td>
-                    </tr>
                 @endforelse
             </tbody>
         </table>

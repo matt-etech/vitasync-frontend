@@ -43,24 +43,34 @@
     <div class="assessment-layout">
         <aside class="assessment-steps">
             <p class="section-kicker mb-2">Onboarding steps</p>
-            <a href="#assessment-master">Master record</a>
-            <a href="#assessment-needs">1. Needs</a>
-            <a href="#assessment-functional">2. Functional</a>
-            <a href="#assessment-medical">3. Medical</a>
-            <a href="#assessment-capacity">4. Mental capacity</a>
-            <a href="#assessment-risk">5. Risk</a>
-            <a href="#assessment-communication">6. Communication</a>
-            <a href="#assessment-equality">7. Equality</a>
-            <a href="#assessment-social">8. Social</a>
-            <a href="#assessment-environmental">9. Environmental</a>
+            <button type="button" data-step-target="0">Master record</button>
+            <button type="button" data-step-target="1">1. Needs</button>
+            <button type="button" data-step-target="2">2. Functional</button>
+            <button type="button" data-step-target="3">3. Medical</button>
+            <button type="button" data-step-target="4">4. Mental capacity</button>
+            <button type="button" data-step-target="5">5. Risk</button>
+            <button type="button" data-step-target="6">6. Communication</button>
+            <button type="button" data-step-target="7">7. Equality</button>
+            <button type="button" data-step-target="8">8. Social</button>
+            <button type="button" data-step-target="9">9. Environmental</button>
         </aside>
 
-        <form class="form-workspace" method="POST" action="{{ route('clients.assessments.update', $client) }}">
+        <form class="form-workspace" method="POST" action="{{ route('clients.assessments.update', $client) }}" data-assessment-stepper>
             @csrf
             @method('PUT')
             <x-form-errors />
 
-            <section class="form-section" id="assessment-master">
+            <div class="assessment-progress-shell">
+                <div class="assessment-progress-meta">
+                    <span>Assessment progress</span>
+                    <span>Step <span data-step-current>1</span> of <span data-step-total>10</span></span>
+                </div>
+                <div class="progress" role="progressbar" aria-label="Assessment progress">
+                    <div class="progress-bar" data-step-progress style="width: 10%"></div>
+                </div>
+            </div>
+
+            <section class="form-section assessment-step-panel" data-step-panel id="assessment-master">
                 <div class="form-section-header">
                     <span class="section-kicker">General master record</span>
                     <h2 class="form-section-title mt-2">Assessment Details</h2>
@@ -106,7 +116,7 @@
                 </div>
             </section>
 
-            <section class="form-section" id="assessment-needs">
+            <section class="form-section assessment-step-panel" data-step-panel id="assessment-needs">
                 <div class="form-section-header">
                     <span class="section-kicker">Step 1</span>
                     <h2 class="form-section-title mt-2">Needs Assessment</h2>
@@ -133,7 +143,7 @@
                 </div>
             </section>
 
-            <section class="form-section" id="assessment-functional">
+            <section class="form-section assessment-step-panel" data-step-panel id="assessment-functional">
                 <div class="form-section-header">
                     <span class="section-kicker">Step 2</span>
                     <h2 class="form-section-title mt-2">Functional Assessment</h2>
@@ -167,7 +177,7 @@
                 </div>
             </section>
 
-            <section class="form-section" id="assessment-medical">
+            <section class="form-section assessment-step-panel" data-step-panel id="assessment-medical">
                 <div class="form-section-header">
                     <span class="section-kicker">Step 3</span>
                     <h2 class="form-section-title mt-2">Medical Assessment</h2>
@@ -201,7 +211,7 @@
                 </div>
             </section>
 
-            <section class="form-section" id="assessment-capacity">
+            <section class="form-section assessment-step-panel" data-step-panel id="assessment-capacity">
                 <div class="form-section-header">
                     <span class="section-kicker">Step 4</span>
                     <h2 class="form-section-title mt-2">Mental Capacity Assessment</h2>
@@ -246,7 +256,7 @@
                 </div>
             </section>
 
-            <section class="form-section" id="assessment-risk">
+            <section class="form-section assessment-step-panel" data-step-panel id="assessment-risk">
                 <div class="form-section-header">
                     <span class="section-kicker">Step 5</span>
                     <h2 class="form-section-title mt-2">Risk Assessment</h2>
@@ -282,7 +292,7 @@
                 </div>
             </section>
 
-            <section class="form-section" id="assessment-communication">
+            <section class="form-section assessment-step-panel" data-step-panel id="assessment-communication">
                 <div class="form-section-header">
                     <span class="section-kicker">Step 6</span>
                     <h2 class="form-section-title mt-2">Communication Assessment</h2>
@@ -322,7 +332,7 @@
                 </div>
             </section>
 
-            <section class="form-section" id="assessment-equality">
+            <section class="form-section assessment-step-panel" data-step-panel id="assessment-equality">
                 <div class="form-section-header">
                     <span class="section-kicker">Step 7</span>
                     <h2 class="form-section-title mt-2">Equality Assessment</h2>
@@ -356,7 +366,7 @@
                 </div>
             </section>
 
-            <section class="form-section" id="assessment-social">
+            <section class="form-section assessment-step-panel" data-step-panel id="assessment-social">
                 <div class="form-section-header">
                     <span class="section-kicker">Step 8</span>
                     <h2 class="form-section-title mt-2">Social Assessment</h2>
@@ -394,7 +404,7 @@
                 </div>
             </section>
 
-            <section class="form-section" id="assessment-environmental">
+            <section class="form-section assessment-step-panel" data-step-panel id="assessment-environmental">
                 <div class="form-section-header">
                     <span class="section-kicker">Step 9</span>
                     <h2 class="form-section-title mt-2">Environmental Assessment</h2>
@@ -430,6 +440,8 @@
                     Saving changes returns this onboarding record to the onboarding state until it is submitted again.
                 </div>
                 <div class="d-flex flex-wrap gap-2">
+                    <button class="btn btn-outline-secondary fw-semibold" type="button" data-step-previous><i class="fa-solid fa-arrow-left me-1"></i>Previous</button>
+                    <button class="btn btn-action btn-action-primary fw-semibold" type="button" data-step-next>Next<i class="fa-solid fa-arrow-right ms-1"></i></button>
                     <button class="btn btn-primary fw-semibold" type="submit"><i class="fa-solid fa-floppy-disk me-1"></i>Save assessment</button>
                     <a class="btn btn-outline-secondary fw-semibold" href="{{ route('clients.index') }}">Cancel</a>
                 </div>

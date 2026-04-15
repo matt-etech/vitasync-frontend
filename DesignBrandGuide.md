@@ -239,6 +239,8 @@ Chronological clarity
 - Emergency contact fields should remain visible during onboarding because they support escalation.
 - Status must be explicit and visible; default to active only when creating a real active client record.
 - Client onboarding assessment must use a stepped workflow with a visible step list and breadcrumbs.
+- Stepped assessment workflows must show progress as "current step of total steps" and a visible progress bar.
+- Only the current assessment step should be shown; users move with Previous/Next controls or the step list.
 - Assessment steps must include a master assessment record plus needs, functional, medical, mental capacity, risk, communication, equality, social, and environmental sections.
 - Each assessment section must group evidence fields under clear clinical headings and keep notes close to the related evidence.
 - Onboarding state must always be visible: onboarding, pending, approved, or declined.
@@ -272,6 +274,7 @@ Administrative and operational index tables must use the local DataTables asset 
 - Export button text must always be visible; never rely on color-only or icon-only controls.
 - Headers must have clear contrast against the table body and must remain readable when sorted.
 - Disabled, empty, and filtered states must remain legible under WCAG 2.2 AA contrast expectations.
+- Do not render manual empty-state rows with `colspan` inside DataTables tables. Let DataTables render the empty table state to avoid column-count errors.
 - Table controls, table body, and footer pagination need clear spacing. The record count and pagination footer must not sit against the outer card edge.
 
 ### PDF Export Styling
