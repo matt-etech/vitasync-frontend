@@ -27,7 +27,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse ($homes as $home)
+                    @foreach ($homes as $home)
                         <tr>
                             <td>
                                 <div class="d-flex align-items-center gap-3">
@@ -59,7 +59,7 @@
                                 </div>
                             </td>
                         </tr>
-                    @endforelse
+                    @endforeach
                 </tbody>
             </table>
         </div>

@@ -27,7 +27,7 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse ($permissions as $permission)
+                @foreach ($permissions as $permission)
                     <tr>
                         <td>
                             <p class="fw-semibold mb-0">{{ $permission->name }}</p>
@@ -46,7 +46,7 @@
                             </div>
                         </td>
                     </tr>
-                @endforelse
+                @endforeach
             </tbody>
         </table>
         </div>

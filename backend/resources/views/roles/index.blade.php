@@ -28,7 +28,7 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse ($roles as $role)
+                @foreach ($roles as $role)
                     <tr>
                         <td>
                             <p class="fw-semibold mb-0">{{ $role->name }}</p>
@@ -48,7 +48,7 @@
                             </div>
                         </td>
                     </tr>
-                @endforelse
+                @endforeach
             </tbody>
         </table>
         </div>

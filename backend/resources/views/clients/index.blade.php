@@ -32,7 +32,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse ($clients as $client)
+                    @foreach ($clients as $client)
                         <tr>
                             <td>
                                 <p class="fw-semibold mb-0">{{ $client->fullName() }}</p>
@@ -77,7 +77,7 @@
                                 </div>
                             </td>
                         </tr>
-                    @endforelse
+                    @endforeach
                 </tbody>
             </table>
         </div>
