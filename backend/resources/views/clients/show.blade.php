@@ -70,7 +70,7 @@
         <x-slot:action>
             <div class="d-flex flex-wrap gap-2">
                 <a class="btn btn-outline-secondary" href="{{ route('clients.index') }}"><i class="fa-solid fa-arrow-left me-1"></i>Clients</a>
-                <a class="btn btn-primary" href="{{ route('clients.assessments.edit', $client) }}"><i class="fa-solid fa-list-check me-1"></i>New assessment version</a>
+                <a class="btn btn-primary" href="{{ route('clients.assessments.edit', $client) }}"><i class="fa-solid fa-list-check me-1"></i>{{ $client->assessment?->status === 'onboarding' ? 'Resume assessment' : 'New assessment version' }}</a>
             </div>
         </x-slot:action>
     </x-page-header>

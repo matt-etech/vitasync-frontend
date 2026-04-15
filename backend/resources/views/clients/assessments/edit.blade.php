@@ -12,7 +12,7 @@
 
 @section('content')
     @php
-        $status = $client->onboarding_status ?: 'onboarding';
+        $status = $assessment->status ?: $client->onboarding_status ?: 'onboarding';
         $statusBadge = [
             'onboarding' => 'text-bg-info',
             'pending' => 'text-bg-warning',

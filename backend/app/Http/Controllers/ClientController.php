@@ -14,7 +14,11 @@ class ClientController extends Controller
     public function index(): View
     {
         return view('clients.index', [
-            'clients' => Client::with(['home', 'assessment'])->orderBy('last_name')->orderBy('first_name')->get(),
+            'clients' => Client::with(['home', 'assessment'])
+                ->withExists(['assessments as has_onboarding_assessment' => fn ($query) => $query->where('status', 'onboarding')])
+                ->orderBy('last_name')
+                ->orderBy('first_name')
+                ->get(),
             'newClient' => new Client(['status' => 'active', 'onboarding_status' => Client::ONBOARDING_STATUS_ONBOARDING]),
             'homes' => Home::where('status', 'active')->orderBy('name')->get(),
         ]);
@@ -34,6 +38,7 @@ class ClientController extends Controller
             'client' => $client->load([
                 'home',
                 'reviewer',
+                'assessment',
                 'assessments' => fn ($query) => $query
                     ->with([
                         'reviewer',

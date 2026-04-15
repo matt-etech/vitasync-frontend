@@ -194,6 +194,12 @@ class ClientManagementTest extends TestCase
         $this->assertSame(ClientAssessment::STATUS_ONBOARDING, ClientAssessment::where('client_id', $client->id)->where('version', 2)->firstOrFail()->status);
 
         $this->actingAs($admin)
+            ->get(route('clients.assessments.edit', $client))
+            ->assertOk();
+
+        $this->assertSame(2, ClientAssessment::where('client_id', $client->id)->count());
+
+        $this->actingAs($admin)
             ->post(route('clients.assessments.submit', $client))
             ->assertRedirect(route('clients.assessments.edit', $client, absolute: false));
 
@@ -211,5 +217,59 @@ class ClientManagementTest extends TestCase
             ->assertSee('Version 2')
             ->assertSee('Version 1')
             ->assertSee('Clarify medication support plan.');
+    }
+
+    public function test_open_onboarding_assessment_is_resumed_without_creating_another_version(): void
+    {
+        $admin = User::create([
+            'name' => 'Admin',
+            'email' => 'resume@example.com',
+            'password' => Hash::make('password'),
+        ]);
+        $admin->permissions()->attach(Permission::create([
+            'name' => 'clients.manage',
+            'description' => 'Manage clients.',
+        ]));
+        $home = Home::create([
+            'name' => 'Rose House',
+            'address_line_1' => '2 Care Street',
+            'city' => 'Bristol',
+            'postcode' => 'BS2 2AA',
+            'country' => 'United Kingdom',
+            'status' => 'active',
+        ]);
+        $client = Client::create([
+            'home_id' => $home->id,
+            'first_name' => 'Ruth',
+            'last_name' => 'Green',
+            'status' => 'active',
+            'onboarding_status' => Client::ONBOARDING_STATUS_APPROVED,
+        ]);
+
+        $client->assessments()->create([
+            'version' => 1,
+            'assessment_type' => 'initial',
+            'status' => ClientAssessment::STATUS_APPROVED,
+            'assessment_date' => now()->subDay()->toDateString(),
+        ]);
+        $client->assessments()->create([
+            'version' => 2,
+            'assessment_type' => 'review',
+            'status' => ClientAssessment::STATUS_ONBOARDING,
+            'assessment_date' => now()->toDateString(),
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('clients.assessments.edit', $client))
+            ->assertOk()
+            ->assertSee('Assessment progress');
+
+        $this->assertSame(2, ClientAssessment::where('client_id', $client->id)->count());
+
+        $this->actingAs($admin)
+            ->get(route('clients.assessments.edit', $client))
+            ->assertOk();
+
+        $this->assertSame(2, ClientAssessment::where('client_id', $client->id)->count());
     }
 }

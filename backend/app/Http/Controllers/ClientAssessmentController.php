@@ -17,7 +17,7 @@ class ClientAssessmentController extends Controller
         $assessment = $this->editableAssessmentFor($client)->load($this->sectionRelations());
 
         return view('clients.assessments.edit', [
-            'client' => $client->load('home'),
+            'client' => $client->refresh()->load('home'),
             'assessment' => $assessment,
         ]);
     }
@@ -132,15 +132,28 @@ class ClientAssessmentController extends Controller
 
     private function editableAssessmentFor(Client $client): ClientAssessment
     {
+        $openAssessment = $client->assessments()
+            ->where('status', ClientAssessment::STATUS_ONBOARDING)
+            ->latest('version')
+            ->first();
+
+        if ($openAssessment !== null) {
+            return $openAssessment;
+        }
+
         $latest = $this->latestAssessmentFor($client);
 
         if ($latest === null) {
-            return $client->assessments()->create([
+            $assessment = $client->assessments()->create([
                 'assessment_date' => now()->toDateString(),
                 'assessment_type' => 'initial',
                 'status' => ClientAssessment::STATUS_ONBOARDING,
                 'version' => 1,
             ]);
+
+            $this->markClientOnboarding($client);
+
+            return $assessment;
         }
 
         if ($latest->status === ClientAssessment::STATUS_ONBOARDING) {
@@ -197,7 +210,20 @@ class ClientAssessmentController extends Controller
                 ->all());
         }
 
+        $this->markClientOnboarding($client);
+
         return $assessment;
+    }
+
+    private function markClientOnboarding(Client $client): void
+    {
+        $client->update([
+            'onboarding_status' => Client::ONBOARDING_STATUS_ONBOARDING,
+            'submitted_at' => null,
+            'reviewed_at' => null,
+            'reviewed_by' => null,
+            'review_notes' => null,
+        ]);
     }
 
     /**
