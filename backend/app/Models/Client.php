@@ -77,6 +77,14 @@ class Client extends Model
         return $this->hasMany(CarePlan::class);
     }
 
+    /**
+     * @return HasMany<Visit, $this>
+     */
+    public function visits(): HasMany
+    {
+        return $this->hasMany(Visit::class);
+    }
+
     public function fullName(): string
     {
         return trim($this->first_name.' '.$this->last_name);

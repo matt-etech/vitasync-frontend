@@ -11,6 +11,7 @@ use App\Http\Controllers\ImpersonationController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\VisitController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -36,6 +37,7 @@ Route::middleware('auth')->group(function (): void {
     });
     Route::resource('clients', ClientController::class)->middleware('permission:clients.manage');
     Route::resource('care-plans', CarePlanController::class)->only(['index', 'store', 'update', 'destroy'])->middleware('permission:care_plans.manage');
+    Route::resource('visits', VisitController::class)->only(['index', 'store', 'update', 'destroy'])->middleware('permission:clients.manage');
     Route::prefix('clients/{client}/assessment')->name('clients.assessments.')->middleware('permission:clients.manage')->group(function (): void {
         Route::get('/', [ClientAssessmentController::class, 'edit'])->name('edit');
         Route::put('/', [ClientAssessmentController::class, 'update'])->name('update');

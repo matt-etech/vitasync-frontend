@@ -137,6 +137,9 @@
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="client-care-plans-tab" data-bs-toggle="tab" data-bs-target="#client-care-plans-pane" type="button" role="tab" aria-controls="client-care-plans-pane" aria-selected="false">Care Plans</button>
                 </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="client-visits-tab" data-bs-toggle="tab" data-bs-target="#client-visits-pane" type="button" role="tab" aria-controls="client-visits-pane" aria-selected="false">Visits</button>
+                </li>
             </ul>
 
             <div class="tab-content pt-4" id="clientShowTabsContent">
@@ -377,6 +380,72 @@
                         </div>
                     @endif
                 </div>
+
+                <div class="tab-pane fade" id="client-visits-pane" role="tabpanel" aria-labelledby="client-visits-tab" tabindex="0">
+                    <div class="d-flex flex-column flex-md-row gap-2 justify-content-md-between mb-3">
+                        <div>
+                            <p class="section-kicker mb-2">Visit Schedule</p>
+                            <h2 class="h4 fw-bold mb-0">Scheduled and completed visits</h2>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2 align-items-start">
+                            <span class="text-secondary fw-semibold">{{ $client->visits->count() }} total visits</span>
+                            @if (auth()->user()->hasPermission('clients.manage') && $client->status === 'active')
+                                <button class="btn btn-sm btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#createClientVisitModal"><i class="fa-solid fa-plus me-1"></i>Book visit</button>
+                                <a class="btn btn-sm btn-action btn-action-primary" href="{{ route('visits.index') }}"><i class="fa-solid fa-calendar-check"></i>Manage visits</a>
+                            @endif
+                        </div>
+                    </div>
+
+                    @if ($client->visits->isEmpty())
+                        <div class="alert alert-info mb-0">No visits have been scheduled for this client yet. The visit model is now available for scheduling and EVV linkage.</div>
+                    @else
+                        <div class="table-responsive">
+                            <table class="table align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Visit</th>
+                                        <th>Schedule</th>
+                                        <th>Worker</th>
+                                        <th>Care plan</th>
+                                        <th>Status</th>
+                                        <th>Check in</th>
+                                        <th>Check out</th>
+                                        @if (auth()->user()->hasPermission('clients.manage') && $client->status === 'active')
+                                            <th class="text-end">Action</th>
+                                        @endif
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($client->visits as $visit)
+                                        <tr>
+                                            <td>
+                                                <p class="fw-bold mb-0">{{ $visit->title }}</p>
+                                                @if ($visit->notes)
+                                                    <p class="text-secondary mb-0">{{ $visit->notes }}</p>
+                                                @endif
+                                            </td>
+                                            <td>{{ $visit->durationLabel() }}</td>
+                                            <td>{{ $visit->assignedWorker?->name ?: 'Unassigned' }}</td>
+                                            <td>{{ $visit->carePlan?->title ?: 'Not linked' }}</td>
+                                            <td>
+                                                <span class="badge text-bg-{{ $visit->status === 'completed' ? 'success' : ($visit->status === 'in_progress' ? 'warning' : 'secondary') }}">
+                                                    {{ str($visit->status)->replace('_', ' ')->headline() }}
+                                                </span>
+                                            </td>
+                                            <td>{{ $visit->check_in_at?->format('Y-m-d H:i') ?: 'Not checked in' }}</td>
+                                            <td>{{ $visit->check_out_at?->format('Y-m-d H:i') ?: 'Not checked out' }}</td>
+                                            @if (auth()->user()->hasPermission('clients.manage') && $client->status === 'active')
+                                                <td class="text-end">
+                                                    <button class="btn btn-sm btn-action" type="button" data-bs-toggle="modal" data-bs-target="#editClientVisitModal{{ $visit->id }}"><i class="fa-solid fa-pen"></i>Edit</button>
+                                                </td>
+                                            @endif
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </div>
             </div>
         </div>
     </div>
@@ -411,6 +480,43 @@
                         </div>
                         <div class="modal-body">
                             @include('care-plans.partials.form', ['carePlan' => $editPlan, 'clients' => $carePlanClients, 'submitLabel' => 'Update care plan', 'formId' => 'client_show_edit_'.$editPlan->id])
+                        </div>
+                    </form>
+                </div>
+            </div>
+        @endforeach
+    @endif
+
+    @if (auth()->user()->hasPermission('clients.manage') && $client->status === 'active')
+        <div class="modal fade" id="createClientVisitModal" tabindex="-1" aria-labelledby="createClientVisitModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                <form class="modal-content" method="POST" action="{{ route('visits.store') }}">
+                    @csrf
+                    <input type="hidden" name="return_to_client_id" value="{{ $client->id }}">
+                    <div class="modal-header">
+                        <h2 class="modal-title h5" id="createClientVisitModalLabel">Book visit for {{ $client->fullName() }}</h2>
+                        <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        @include('visits.partials.form', ['visit' => $newVisit, 'clients' => $visitClients, 'workers' => $visitWorkers, 'submitLabel' => 'Book visit', 'formId' => 'client_show_create_visit'])
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        @foreach ($client->visits as $editVisit)
+            <div class="modal fade" id="editClientVisitModal{{ $editVisit->id }}" tabindex="-1" aria-labelledby="editClientVisitModalLabel{{ $editVisit->id }}" aria-hidden="true">
+                <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                    <form class="modal-content" method="POST" action="{{ route('visits.update', $editVisit) }}">
+                        @csrf
+                        @method('PUT')
+                        <input type="hidden" name="return_to_client_id" value="{{ $client->id }}">
+                        <div class="modal-header">
+                            <h2 class="modal-title h5" id="editClientVisitModalLabel{{ $editVisit->id }}">Edit {{ $editVisit->title }}</h2>
+                            <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            @include('visits.partials.form', ['visit' => $editVisit, 'clients' => $visitClients, 'workers' => $visitWorkers, 'submitLabel' => 'Update visit', 'formId' => 'client_show_edit_visit_'.$editVisit->id])
                         </div>
                     </form>
                 </div>

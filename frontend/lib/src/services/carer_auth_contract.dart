@@ -1,0 +1,17 @@
+import '../models/carer_session.dart';
+
+abstract class CarerAuthPort {
+  Future<CarerSession> login({
+    required String email,
+    required String password,
+  });
+}
+
+class CarerAuthException implements Exception {
+  const CarerAuthException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
+}

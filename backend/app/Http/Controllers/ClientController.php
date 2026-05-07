@@ -7,6 +7,8 @@ use App\Http\Requests\UpdateClientRequest;
 use App\Models\CarePlan;
 use App\Models\Client;
 use App\Models\Home;
+use App\Models\User;
+use App\Models\Visit;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -39,6 +41,7 @@ class ClientController extends Controller
             'home',
             'reviewer',
             'assessment',
+            'visits' => fn ($query) => $query->with(['carePlan', 'assignedWorker'])->latest('scheduled_start_at'),
             'carePlans' => fn ($query) => $query->latest('start_date')->latest('id'),
             'assessments' => fn ($query) => $query
                 ->with([
@@ -63,7 +66,16 @@ class ClientController extends Controller
                 'start_date' => now()->toDateString(),
                 'status' => 'draft',
             ]),
+            'newVisit' => new Visit([
+                'client_id' => $client->id,
+                'care_plan_id' => $client->carePlans->first()?->id,
+                'scheduled_start_at' => now()->startOfHour(),
+                'scheduled_end_at' => now()->startOfHour()->addHour(),
+                'status' => 'scheduled',
+            ]),
             'carePlanClients' => collect([$client]),
+            'visitClients' => collect([$client]),
+            'visitWorkers' => User::where('is_active', true)->orderBy('name')->get(),
         ]);
     }
 

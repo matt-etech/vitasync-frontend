@@ -64,6 +64,14 @@ class Home extends Model
         return $this->hasMany(CarePlan::class);
     }
 
+    /**
+     * @return HasMany<Visit, $this>
+     */
+    public function visits(): HasMany
+    {
+        return $this->hasMany(Visit::class);
+    }
+
     public function logoUrl(): ?string
     {
         if ($this->logo_path === null) {
