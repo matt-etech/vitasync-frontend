@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_web_libraries_in_flutter, deprecated_member_use
+
 import 'dart:convert';
 import 'dart:html' as html;
 
@@ -5,9 +7,7 @@ import '../models/carer_session.dart';
 import 'carer_auth_contract.dart';
 
 class CarerAuthService implements CarerAuthPort {
-  CarerAuthService({
-    required String baseUrl,
-  }) : _baseUri = Uri.parse(baseUrl);
+  CarerAuthService({required String baseUrl}) : _baseUri = Uri.parse(baseUrl);
 
   final Uri _baseUri;
 
@@ -27,6 +27,34 @@ class CarerAuthService implements CarerAuthPort {
     );
 
     return _parseLoginResponse(
+      statusCode: request.status ?? 0,
+      body: request.responseText ?? '',
+    );
+  }
+
+  @override
+  Future<void> changePassword({
+    required CarerSession session,
+    required String currentPassword,
+    required String newPassword,
+    required String newPasswordConfirmation,
+  }) async {
+    final request = await html.HttpRequest.request(
+      _baseUri.resolve('/api/carer/change-password').toString(),
+      method: 'POST',
+      requestHeaders: const {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      sendData: jsonEncode({
+        'carer_id': session.id,
+        'current_password': currentPassword,
+        'password': newPassword,
+        'password_confirmation': newPasswordConfirmation,
+      }),
+    );
+
+    _parsePasswordChangeResponse(
       statusCode: request.status ?? 0,
       body: request.responseText ?? '',
     );
@@ -56,12 +84,41 @@ CarerSession _parseLoginResponse({
   }
 
   if (statusCode == 422) {
-    throw const CarerAuthException('Email or password was not recognised for a carer account.');
+    throw const CarerAuthException(
+      'Email or password was not recognised for a carer account.',
+    );
   }
 
   if (statusCode == 403) {
-    throw const CarerAuthException('This login is only available to active carers.');
+    throw const CarerAuthException(
+      'This login is only available to active carers.',
+    );
   }
 
-  throw const CarerAuthException('Login could not be completed. Check the backend connection and try again.');
+  throw const CarerAuthException(
+    'Login could not be completed. Check the backend connection and try again.',
+  );
+}
+
+void _parsePasswordChangeResponse({
+  required int statusCode,
+  required String body,
+}) {
+  if (statusCode == 200) {
+    return;
+  }
+
+  if (statusCode == 422 || statusCode == 403) {
+    final decoded = jsonDecode(body) as Map<String, dynamic>?;
+    final message = decoded?['message'] as String?;
+
+    throw CarerAuthException(
+      message ??
+          'Password could not be changed. Check the details and try again.',
+    );
+  }
+
+  throw const CarerAuthException(
+    'Password could not be changed. Check the backend connection and try again.',
+  );
 }

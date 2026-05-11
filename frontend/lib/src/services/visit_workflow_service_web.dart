@@ -48,6 +48,51 @@ class VisitWorkflowService implements VisitWorkflowPort {
     return _postAction(session: session, visitId: visitId, action: 'check-out');
   }
 
+  @override
+  Future<VisitWorkflow> recordLocationEvent({
+    required CarerSession session,
+    required int visitId,
+    required VisitLocationEvent event,
+  }) async {
+    final request = await html.HttpRequest.request(
+      _baseUri
+          .replace(path: '/api/carer/visits/$visitId/location-event')
+          .toString(),
+      method: 'POST',
+      requestHeaders: const {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      sendData: jsonEncode(event.toJson(carerId: session.id)),
+    );
+
+    return _parseVisit(
+      statusCode: request.status ?? 0,
+      body: request.responseText ?? '',
+    );
+  }
+
+  @override
+  Future<IssueReportReceipt> reportIssue({
+    required CarerSession session,
+    required IssueReport issue,
+  }) async {
+    final request = await html.HttpRequest.request(
+      _baseUri.replace(path: '/api/carer/issue-reports').toString(),
+      method: 'POST',
+      requestHeaders: const {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      sendData: jsonEncode(issue.toJson(carerId: session.id)),
+    );
+
+    return _parseIssueReportReceipt(
+      statusCode: request.status ?? 0,
+      body: request.responseText ?? '',
+    );
+  }
+
   Future<VisitWorkflow> _postAction({
     required CarerSession session,
     required int visitId,
@@ -68,6 +113,21 @@ class VisitWorkflowService implements VisitWorkflowPort {
       body: request.responseText ?? '',
     );
   }
+}
+
+IssueReportReceipt _parseIssueReportReceipt({
+  required int statusCode,
+  required String body,
+}) {
+  if (statusCode == 200) {
+    return IssueReportReceipt.fromJson(
+      jsonDecode(body) as Map<String, dynamic>,
+    );
+  }
+
+  throw const VisitWorkflowException(
+    'Issue report could not be sent. It remains queued for follow-up.',
+  );
 }
 
 VisitWorkflow? _parseNullableVisit({

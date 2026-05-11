@@ -44,6 +44,46 @@ class VisitWorkflowService implements VisitWorkflowPort {
     return _postAction(session: session, visitId: visitId, action: 'check-out');
   }
 
+  @override
+  Future<VisitWorkflow> recordLocationEvent({
+    required CarerSession session,
+    required int visitId,
+    required VisitLocationEvent event,
+  }) async {
+    final uri = _baseUri.replace(
+      path: '/api/carer/visits/$visitId/location-event',
+    );
+    final request = await _httpClient.postUrl(uri);
+    request.headers.contentType = ContentType.json;
+    request.headers.set(HttpHeaders.acceptHeader, ContentType.json.mimeType);
+    request.write(jsonEncode(event.toJson(carerId: session.id)));
+
+    final response = await request.close();
+    final body = await response.transform(utf8.decoder).join();
+
+    return _parseVisit(statusCode: response.statusCode, body: body);
+  }
+
+  @override
+  Future<IssueReportReceipt> reportIssue({
+    required CarerSession session,
+    required IssueReport issue,
+  }) async {
+    final uri = _baseUri.replace(path: '/api/carer/issue-reports');
+    final request = await _httpClient.postUrl(uri);
+    request.headers.contentType = ContentType.json;
+    request.headers.set(HttpHeaders.acceptHeader, ContentType.json.mimeType);
+    request.write(jsonEncode(issue.toJson(carerId: session.id)));
+
+    final response = await request.close();
+    final body = await response.transform(utf8.decoder).join();
+
+    return _parseIssueReportReceipt(
+      statusCode: response.statusCode,
+      body: body,
+    );
+  }
+
   Future<VisitWorkflow> _postAction({
     required CarerSession session,
     required int visitId,
@@ -60,6 +100,21 @@ class VisitWorkflowService implements VisitWorkflowPort {
 
     return _parseVisit(statusCode: response.statusCode, body: body);
   }
+}
+
+IssueReportReceipt _parseIssueReportReceipt({
+  required int statusCode,
+  required String body,
+}) {
+  if (statusCode == HttpStatus.ok) {
+    return IssueReportReceipt.fromJson(
+      jsonDecode(body) as Map<String, dynamic>,
+    );
+  }
+
+  throw const VisitWorkflowException(
+    'Issue report could not be sent. It remains queued for follow-up.',
+  );
 }
 
 VisitWorkflow? _parseNullableVisit({

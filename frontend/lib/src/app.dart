@@ -48,6 +48,7 @@ class _VitaSyncCarerAppState extends State<VitaSyncCarerApp> {
             )
           : CarerHomeScreen(
               session: _session!,
+              authService: widget.authService,
               clientDirectory: widget.clientDirectory,
               carePlanTasks: widget.carePlanTasks,
               visitSchedule: widget.visitSchedule,

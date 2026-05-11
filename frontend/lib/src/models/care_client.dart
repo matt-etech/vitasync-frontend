@@ -6,6 +6,9 @@ class CareClient {
     this.address,
     this.phone,
     this.email,
+    this.latitude,
+    this.longitude,
+    this.geofenceRadiusMeters,
     this.homeName,
     this.onboardingStatus,
   });
@@ -16,6 +19,9 @@ class CareClient {
   final String? address;
   final String? phone;
   final String? email;
+  final double? latitude;
+  final double? longitude;
+  final int? geofenceRadiusMeters;
   final String? homeName;
   final String? onboardingStatus;
 
@@ -27,6 +33,9 @@ class CareClient {
       address: json['address'] as String?,
       phone: json['phone'] as String?,
       email: json['email'] as String?,
+      latitude: (json['latitude'] as num?)?.toDouble(),
+      longitude: (json['longitude'] as num?)?.toDouble(),
+      geofenceRadiusMeters: (json['geofence_radius_meters'] as num?)?.toInt(),
       homeName: json['home_name'] as String?,
       onboardingStatus: json['onboarding_status'] as String?,
     );

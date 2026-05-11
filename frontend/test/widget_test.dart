@@ -14,9 +14,10 @@ import 'package:vitasync_health/src/services/visit_workflow_contract.dart';
 
 void main() {
   testWidgets('carer can sign in and see their access state', (tester) async {
+    final authService = _SuccessfulCarerAuthService();
     await tester.pumpWidget(
       VitaSyncCarerApp(
-        authService: _SuccessfulCarerAuthService(),
+        authService: authService,
         clientDirectory: _SuccessfulClientDirectory(),
         carePlanTasks: _SuccessfulCarePlanTasks(),
         visitSchedule: _SuccessfulVisitSchedule(),
@@ -37,36 +38,69 @@ void main() {
 
     expect(find.text('Today'), findsOneWidget);
     expect(find.text('Visit execution'), findsOneWidget);
-    expect(find.text('Offline ready'), findsOneWidget);
+    expect(find.text('Sync status: synced'), findsOneWidget);
+    expect(find.textContaining('Last synced'), findsOneWidget);
     expect(find.text('scheduled'), findsOneWidget);
     expect(find.text('Check In'), findsOneWidget);
-    expect(find.text('Care plan'), findsOneWidget);
-    expect(find.text('Medication'), findsOneWidget);
-    expect(find.text('pending'), findsWidgets);
+    expect(find.text('Observations'), findsOneWidget);
+    expect(find.text('Vitals input'), findsNothing);
+    expect(find.text('Record current vitals'), findsOneWidget);
+    expect(find.text('Upload photo'), findsOneWidget);
+    expect(find.text('Care plan'), findsNothing);
+    expect(find.text('Medication'), findsNothing);
     expect(find.text('Audit evidence'), findsOneWidget);
 
+    await tester.ensureVisible(find.text('Check In'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Check In'));
     await tester.pumpAndSettle();
     expect(find.text('in_progress'), findsOneWidget);
     expect(find.text('Check In recorded'), findsOneWidget);
     expect(find.text('09:28 - pending_sync'), findsOneWidget);
 
-    await tester.drag(find.byType(ListView), const Offset(0, -360));
+    await tester.drag(find.byType(ListView), const Offset(0, -260));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byType(Checkbox).first);
+    await tester.ensureVisible(find.text('Upload photo'));
     await tester.pumpAndSettle();
-    expect(find.text('done'), findsOneWidget);
+    await tester.tap(find.text('Upload photo'));
+    await tester.pumpAndSettle();
+    expect(find.text('Take photo'), findsOneWidget);
+    expect(find.text('Choose from library'), findsOneWidget);
+    await tester.tapAt(const Offset(20, 20));
+    await tester.pumpAndSettle();
 
-    await tester.drag(find.byType(ListView), const Offset(0, -220));
+    await tester.ensureVisible(find.text('Capture signature'));
     await tester.pumpAndSettle();
-
-    await tester.tap(find.text('Skip').at(1));
+    await tester.tap(find.text('Capture signature'));
     await tester.pumpAndSettle();
-    expect(find.text('skipped'), findsOneWidget);
-    expect(find.text('Reason: Client declined'), findsOneWidget);
+    expect(find.text('Sign inside this box'), findsOneWidget);
+    await tester.drag(find.text('Sign inside this box'), const Offset(120, 40));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save signature'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Signature captured'), findsWidgets);
+    await tester.pump(const Duration(seconds: 4));
 
     expect(find.text('Alerts'), findsNothing);
+
+    await tester.scrollUntilVisible(
+      find.text('Report issue'),
+      500,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Report issue'));
+    await tester.pumpAndSettle();
+    expect(find.text('Issue type'), findsOneWidget);
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Notes'),
+      'Client was not home at arrival.',
+    );
+    await tester.tap(find.text('Queue issue report'));
+    await tester.pump();
+    expect(find.textContaining('issue sent to admin'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 4));
 
     expect(find.text('Default Carer'), findsNothing);
     expect(find.text('Oak House'), findsNothing);
@@ -77,6 +111,90 @@ void main() {
     expect(find.text('Profile'), findsOneWidget);
     expect(find.text('Default Carer'), findsOneWidget);
     expect(find.text('Oak House'), findsOneWidget);
+
+    await tester.tap(find.text('Change password'));
+    await tester.pumpAndSettle();
+    expect(find.text('Current password'), findsOneWidget);
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Current password'),
+      'password',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'New password'),
+      'Newpass1',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Confirm new password'),
+      'Newpass1',
+    );
+    tester.testTextInput.hide();
+    await tester.ensureVisible(find.text('Save new password'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save new password'));
+    await tester.pump();
+    expect(authService.passwordChanged, isTrue);
+  });
+
+  testWidgets('today vitals panel only accepts required numeric readings', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      VitaSyncCarerApp(
+        authService: _SuccessfulCarerAuthService(),
+        clientDirectory: _SuccessfulClientDirectory(),
+        carePlanTasks: _SuccessfulCarePlanTasks(),
+        visitSchedule: _SuccessfulVisitSchedule(),
+        visitWorkflow: _SuccessfulVisitWorkflow(),
+      ),
+    );
+
+    await tester.enterText(
+      find.byType(TextFormField).at(0),
+      'carer@vitasync.local',
+    );
+    await tester.enterText(find.byType(TextFormField).at(1), 'password');
+    await tester.tap(find.byIcon(Icons.login));
+    await tester.pumpAndSettle();
+
+    expect(find.byTooltip('Vitals'), findsNothing);
+    await tester.ensureVisible(find.text('Record current vitals'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Record current vitals'), findsOneWidget);
+    expect(find.widgetWithText(TextFormField, 'BP systolic'), findsOneWidget);
+    expect(find.widgetWithText(TextFormField, 'BP diastolic'), findsOneWidget);
+    expect(find.widgetWithText(TextFormField, 'Pulse'), findsOneWidget);
+    expect(find.widgetWithText(TextFormField, 'Temperature'), findsOneWidget);
+    expect(find.widgetWithText(TextFormField, 'Blood oxygen'), findsOneWidget);
+
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'BP systolic'),
+      'abc120',
+    );
+    expect(find.text('120'), findsOneWidget);
+    expect(find.text('abc120'), findsNothing);
+
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'BP diastolic'),
+      '80x',
+    );
+    await tester.enterText(find.widgetWithText(TextFormField, 'Pulse'), '72b');
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Temperature'),
+      '36.7c',
+    );
+    expect(find.text('36.7'), findsOneWidget);
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Blood oxygen'),
+      '98%',
+    );
+    tester.testTextInput.hide();
+    await tester.ensureVisible(find.text('Save vitals'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save vitals'));
+    await tester.pump();
+
+    expect(find.textContaining('Vitals recorded at'), findsWidgets);
   });
 
   testWidgets('schedule defaults to agenda and can switch calendar modes', (
@@ -104,20 +222,20 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Schedule'), findsOneWidget);
-    expect(find.text('May 2026'), findsOneWidget);
+    expect(find.text('05/2026'), findsOneWidget);
     expect(find.text('Agenda'), findsWidgets);
-    expect(find.text('Visits on 7 May 2026'), findsOneWidget);
+    expect(find.text('Visits on 07/05/2026'), findsOneWidget);
     expect(find.text('Default Carer'), findsWidgets);
 
     await tester.tap(find.byTooltip('Previous month'));
     await tester.pumpAndSettle();
-    expect(find.text('April 2026'), findsOneWidget);
+    expect(find.text('04/2026'), findsOneWidget);
 
     await tester.tap(find.byTooltip('Next month'));
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Next month'));
     await tester.pumpAndSettle();
-    expect(find.text('June 2026'), findsOneWidget);
+    expect(find.text('06/2026'), findsOneWidget);
 
     await tester.drag(find.byType(ListView), const Offset(0, -260));
     await tester.pumpAndSettle();
@@ -174,9 +292,21 @@ void main() {
     expect(find.text('Asha Patel'), findsOneWidget);
     expect(find.text('10 Client Road'), findsOneWidget);
     expect(find.text('Oak House'), findsOneWidget);
+
+    await tester.tap(find.text('Open client'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Client details'), findsOneWidget);
+    expect(find.text('Back to clients'), findsOneWidget);
+
+    await tester.tap(find.text('Back to clients'));
+    await tester.pumpAndSettle();
+    expect(find.text('Client directory'), findsOneWidget);
   });
 
-  testWidgets('tasks tab loads tasks from care plans', (tester) async {
+  testWidgets('tasks tab records basic carer tasks and extra notes', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       VitaSyncCarerApp(
         authService: _SuccessfulCarerAuthService(),
@@ -198,16 +328,44 @@ void main() {
     await tester.tap(find.byTooltip('Tasks'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Care plan tasks'), findsOneWidget);
-    expect(find.text('Administered by staff'), findsOneWidget);
-    expect(find.text('Morning support plan'), findsOneWidget);
-    expect(find.text('Follow MAR chart'), findsOneWidget);
-    expect(find.text('Asha Patel'), findsOneWidget);
+    expect(find.text('Carer tasks'), findsOneWidget);
+    expect(find.text('Confirm client identity and consent'), findsOneWidget);
+    expect(find.text('Review allergies and critical notes'), findsOneWidget);
+    expect(find.text('Medication support completed'), findsOneWidget);
+
+    await tester.tap(find.text('Mark done').first);
+    await tester.pumpAndSettle();
+    expect(find.text('Completed'), findsOneWidget);
+    expect(find.textContaining('Done at'), findsOneWidget);
+
+    await tester.drag(find.byType(ListView), const Offset(0, -520));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Notes'), findsOneWidget);
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Add extra task'),
+      'Changed bedding and recorded skin concern',
+    );
+    await tester.ensureVisible(find.text('Add task'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Add task'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Changed bedding and recorded skin concern'),
+      findsOneWidget,
+    );
 
     await tester.drag(find.byType(ListView), const Offset(0, -520));
     await tester.pumpAndSettle();
 
     expect(find.text('Alerts'), findsOneWidget);
+    expect(find.text('Allergies - Margaret Lewis'), findsOneWidget);
+    expect(find.text('Latex allergy. Use latex-free gloves.'), findsOneWidget);
+    expect(find.text('Critical notes - Margaret Lewis'), findsOneWidget);
+    expect(
+      find.text('High falls risk. Use walking frame and keep route clear.'),
+      findsOneWidget,
+    );
     expect(find.text('Report missed medication'), findsOneWidget);
     expect(find.text('Client not home'), findsOneWidget);
     expect(find.text('Emergency escalation'), findsOneWidget);
@@ -240,6 +398,8 @@ void main() {
 }
 
 class _SuccessfulCarerAuthService implements CarerAuthPort {
+  bool passwordChanged = false;
+
   @override
   Future<CarerSession> login({
     required String email,
@@ -254,6 +414,16 @@ class _SuccessfulCarerAuthService implements CarerAuthPort {
       accountStatus: 'active',
     );
   }
+
+  @override
+  Future<void> changePassword({
+    required CarerSession session,
+    required String currentPassword,
+    required String newPassword,
+    required String newPasswordConfirmation,
+  }) async {
+    passwordChanged = true;
+  }
 }
 
 class _FailingCarerAuthService implements CarerAuthPort {
@@ -265,6 +435,16 @@ class _FailingCarerAuthService implements CarerAuthPort {
     throw const CarerAuthException(
       'This login is only available to active carers.',
     );
+  }
+
+  @override
+  Future<void> changePassword({
+    required CarerSession session,
+    required String currentPassword,
+    required String newPassword,
+    required String newPasswordConfirmation,
+  }) async {
+    throw const CarerAuthException('Password could not be changed.');
   }
 }
 
@@ -352,6 +532,9 @@ class _SuccessfulVisitWorkflow implements VisitWorkflowPort {
       status: status,
       checkInTime: checkInTime,
       checkOutTime: checkOutTime,
+      allergies: 'Latex allergy. Use latex-free gloves.',
+      criticalInformation:
+          'High falls risk. Use walking frame and keep route clear.',
       tasks: const [
         CarePlanTask(
           id: '20:medication',
@@ -389,6 +572,33 @@ class _SuccessfulVisitWorkflow implements VisitWorkflowPort {
       status: 'completed',
       checkInTime: '09:28',
       checkOutTime: '10:12',
+    );
+  }
+
+  @override
+  Future<VisitWorkflow> recordLocationEvent({
+    required CarerSession session,
+    required int visitId,
+    required VisitLocationEvent event,
+  }) async {
+    return event.type == 'arrived'
+        ? _visit(status: 'in_progress', checkInTime: '09:28')
+        : _visit(
+            status: 'completed',
+            checkInTime: '09:28',
+            checkOutTime: '10:12',
+          );
+  }
+
+  @override
+  Future<IssueReportReceipt> reportIssue({
+    required CarerSession session,
+    required IssueReport issue,
+  }) async {
+    return const IssueReportReceipt(
+      status: 'queued',
+      syncStatus: 'synced',
+      reportedAt: '08/05/2026 09:35',
     );
   }
 }

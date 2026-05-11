@@ -61,5 +61,7 @@
 			</dict>
 		</dict>
 	</dict>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>VitaSync uses your location during a visit to automatically log arrival and departure at the client home.</string>
 </dict>
 </plist>
