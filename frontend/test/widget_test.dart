@@ -50,6 +50,17 @@ void main() {
     expect(find.text('Medication'), findsNothing);
     expect(find.text('Audit evidence'), findsOneWidget);
 
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Notes'),
+      'Client settled and breakfast prompt completed.',
+    );
+    await tester.ensureVisible(find.text('Save notes'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save notes'));
+    await tester.pump();
+    expect(find.text('Visit notes saved.'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 4));
+
     await tester.ensureVisible(find.text('Check In'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Check In'));
@@ -523,6 +534,7 @@ class _SuccessfulVisitWorkflow implements VisitWorkflowPort {
     String status = 'scheduled',
     String? checkInTime,
     String? checkOutTime,
+    String? notes,
   }) {
     return VisitWorkflow(
       id: 20,
@@ -535,6 +547,7 @@ class _SuccessfulVisitWorkflow implements VisitWorkflowPort {
       allergies: 'Latex allergy. Use latex-free gloves.',
       criticalInformation:
           'High falls risk. Use walking frame and keep route clear.',
+      notes: notes,
       tasks: const [
         CarePlanTask(
           id: '20:medication',
@@ -573,6 +586,42 @@ class _SuccessfulVisitWorkflow implements VisitWorkflowPort {
       checkInTime: '09:28',
       checkOutTime: '10:12',
     );
+  }
+
+  @override
+  Future<VisitWorkflow> recordVisitNotes({
+    required CarerSession session,
+    required int visitId,
+    required String notes,
+  }) async {
+    return _visit(notes: notes);
+  }
+
+  @override
+  Future<VisitWorkflow> recordVisitTask({
+    required CarerSession session,
+    required int visitId,
+    required VisitTaskRecord task,
+  }) async {
+    return _visit();
+  }
+
+  @override
+  Future<VisitWorkflow> recordVisitVitals({
+    required CarerSession session,
+    required int visitId,
+    required VisitVitalsRecord vitals,
+  }) async {
+    return _visit();
+  }
+
+  @override
+  Future<VisitWorkflow> recordVisitEvidence({
+    required CarerSession session,
+    required int visitId,
+    required VisitEvidenceRecord evidence,
+  }) async {
+    return _visit();
   }
 
   @override

@@ -702,6 +702,7 @@ class _CarerTasksWorkflow extends StatefulWidget {
 
 class _CarerTasksWorkflowState extends State<_CarerTasksWorkflow> {
   final _additionalTaskController = TextEditingController();
+  final Set<String> _taskAuditInFlight = <String>{};
   final List<_BasicCarerTask> _tasks = [
     _BasicCarerTask(
       id: 'identity-consent',
@@ -754,6 +755,7 @@ class _CarerTasksWorkflowState extends State<_CarerTasksWorkflow> {
         for (final task in _tasks)
           _BasicCarerTaskCard(
             task: task,
+            isSaving: _taskAuditInFlight.contains(task.id),
             onChanged: (isDone) => _setTaskDone(task.id, isDone),
           ),
         _AdditionalTaskPanel(
@@ -769,6 +771,7 @@ class _CarerTasksWorkflowState extends State<_CarerTasksWorkflow> {
   }
 
   void _setTaskDone(String taskId, bool isDone) {
+    _BasicCarerTask? updatedTask;
     setState(() {
       final index = _tasks.indexWhere((task) => task.id == taskId);
       if (index == -1) {
@@ -779,7 +782,12 @@ class _CarerTasksWorkflowState extends State<_CarerTasksWorkflow> {
         completedAt: isDone ? DateTime.now() : null,
         clearCompletedAt: !isDone,
       );
+      updatedTask = _tasks[index];
     });
+
+    if (updatedTask != null) {
+      _auditTaskChange(updatedTask!);
+    }
   }
 
   void _addAdditionalTask() {
@@ -800,6 +808,61 @@ class _CarerTasksWorkflowState extends State<_CarerTasksWorkflow> {
       );
       _additionalTaskController.clear();
     });
+  }
+
+  Future<void> _auditTaskChange(_BasicCarerTask task) async {
+    setState(() => _taskAuditInFlight.add(task.id));
+
+    try {
+      final visit = await widget.visitWorkflow.todayVisitForCarer(
+        widget.session,
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      if (visit == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Task audit needs an assigned visit first.'),
+          ),
+        );
+        return;
+      }
+
+      await widget.visitWorkflow.recordVisitTask(
+        session: widget.session,
+        visitId: visit.id,
+        task: VisitTaskRecord(
+          taskKey: task.id,
+          title: task.title,
+          detail: task.detail,
+          status: task.completedAt == null ? 'pending' : 'completed',
+          completedAt: task.completedAt,
+        ),
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('${task.title} audit saved.')));
+    } on VisitWorkflowException catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.message)));
+    } finally {
+      if (mounted) {
+        setState(() => _taskAuditInFlight.remove(task.id));
+      }
+    }
   }
 }
 
@@ -903,6 +966,42 @@ class _TodayVisitWorkflowState extends State<_TodayVisitWorkflow> {
             final updated = await widget.visitWorkflow.checkOut(
               session: widget.session,
               visitId: visit.id,
+            );
+            setState(() {
+              _visit = Future.value(updated);
+              _syncState = _SyncState.synced;
+              _lastSyncAt = DateTime.now();
+            });
+          },
+          onRecordNotes: (notes) async {
+            final updated = await widget.visitWorkflow.recordVisitNotes(
+              session: widget.session,
+              visitId: visit.id,
+              notes: notes,
+            );
+            setState(() {
+              _visit = Future.value(updated);
+              _syncState = _SyncState.synced;
+              _lastSyncAt = DateTime.now();
+            });
+          },
+          onRecordVitals: (vitals) async {
+            final updated = await widget.visitWorkflow.recordVisitVitals(
+              session: widget.session,
+              visitId: visit.id,
+              vitals: vitals,
+            );
+            setState(() {
+              _visit = Future.value(updated);
+              _syncState = _SyncState.synced;
+              _lastSyncAt = DateTime.now();
+            });
+          },
+          onRecordEvidence: (evidence) async {
+            final updated = await widget.visitWorkflow.recordVisitEvidence(
+              session: widget.session,
+              visitId: visit.id,
+              evidence: evidence,
             );
             setState(() {
               _visit = Future.value(updated);
@@ -1225,9 +1324,14 @@ class _BasicCarerTask {
 }
 
 class _BasicCarerTaskCard extends StatelessWidget {
-  const _BasicCarerTaskCard({required this.task, required this.onChanged});
+  const _BasicCarerTaskCard({
+    required this.task,
+    required this.isSaving,
+    required this.onChanged,
+  });
 
   final _BasicCarerTask task;
+  final bool isSaving;
   final ValueChanged<bool> onChanged;
 
   @override
@@ -1273,13 +1377,21 @@ class _BasicCarerTaskCard extends StatelessWidget {
           if (isDone)
             _ClientMeta(
               icon: Icons.schedule_outlined,
-              text: 'Done at ${_timeLabel(task.completedAt!)}',
+              text: isSaving
+                  ? 'Saving audit'
+                  : 'Done at ${_timeLabel(task.completedAt!)}',
             ),
           CheckboxListTile(
             contentPadding: EdgeInsets.zero,
             value: isDone,
-            onChanged: (value) => onChanged(value ?? false),
-            title: Text(isDone ? 'Completed' : 'Mark done'),
+            onChanged: isSaving ? null : (value) => onChanged(value ?? false),
+            title: Text(
+              isSaving
+                  ? 'Saving audit'
+                  : isDone
+                  ? 'Completed'
+                  : 'Mark done',
+            ),
             controlAffinity: ListTileControlAffinity.leading,
           ),
         ],
@@ -2346,6 +2458,9 @@ class _VisitExecutionPanel extends StatelessWidget {
     required this.hasConfiguredLocation,
     required this.onCheckIn,
     required this.onCheckOut,
+    required this.onRecordNotes,
+    required this.onRecordVitals,
+    required this.onRecordEvidence,
   });
 
   final VisitWorkflow visit;
@@ -2356,6 +2471,9 @@ class _VisitExecutionPanel extends StatelessWidget {
   final bool hasConfiguredLocation;
   final VoidCallback onCheckIn;
   final VoidCallback onCheckOut;
+  final Future<void> Function(String notes) onRecordNotes;
+  final Future<void> Function(VisitVitalsRecord vitals) onRecordVitals;
+  final Future<void> Function(VisitEvidenceRecord evidence) onRecordEvidence;
 
   @override
   Widget build(BuildContext context) {
@@ -2389,14 +2507,19 @@ class _VisitExecutionPanel extends StatelessWidget {
             onCheckOut: onCheckOut,
           ),
           const Divider(height: 1, color: Color(0xFFD7DEE3)),
-          const _VisitObservationPanel(),
+          _VisitObservationPanel(
+            initialNotes: visit.notes,
+            onRecordNotes: onRecordNotes,
+            onRecordEvidence: onRecordEvidence,
+          ),
           const Divider(height: 1, color: Color(0xFFD7DEE3)),
-          const _VisitVitalsPanel(),
+          _VisitVitalsPanel(onRecordVitals: onRecordVitals),
           const Divider(height: 1, color: Color(0xFFD7DEE3)),
           _AuditEvidencePanel(
             checkInTime: checkInTime,
             checkOutTime: checkOutTime,
             auditEvidence: auditEvidence,
+            onRecordEvidence: onRecordEvidence,
           ),
         ],
       ),
@@ -2609,28 +2732,47 @@ class _VisitActions extends StatelessWidget {
 }
 
 class _VisitObservationPanel extends StatelessWidget {
-  const _VisitObservationPanel();
+  const _VisitObservationPanel({
+    required this.initialNotes,
+    required this.onRecordNotes,
+    required this.onRecordEvidence,
+  });
+
+  final String? initialNotes;
+  final Future<void> Function(String notes) onRecordNotes;
+  final Future<void> Function(VisitEvidenceRecord evidence) onRecordEvidence;
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.all(16),
-      child: _ObservationsSection(),
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: _ObservationsSection(
+        initialNotes: initialNotes,
+        onRecordNotes: onRecordNotes,
+        onRecordEvidence: onRecordEvidence,
+      ),
     );
   }
 }
 
 class _VisitVitalsPanel extends StatelessWidget {
-  const _VisitVitalsPanel();
+  const _VisitVitalsPanel({required this.onRecordVitals});
+
+  final Future<void> Function(VisitVitalsRecord vitals) onRecordVitals;
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(padding: EdgeInsets.all(16), child: _VitalsWorkflow());
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: _VitalsWorkflow(onRecordVitals: onRecordVitals),
+    );
   }
 }
 
 class _VitalsWorkflow extends StatefulWidget {
-  const _VitalsWorkflow();
+  const _VitalsWorkflow({required this.onRecordVitals});
+
+  final Future<void> Function(VisitVitalsRecord vitals) onRecordVitals;
 
   @override
   State<_VitalsWorkflow> createState() => _VitalsWorkflowState();
@@ -2644,6 +2786,7 @@ class _VitalsWorkflowState extends State<_VitalsWorkflow> {
   final _temperatureController = TextEditingController();
   final _oxygenController = TextEditingController();
   DateTime? _recordedAt;
+  bool _savingVitals = false;
 
   static final _wholeNumberFormatter = FilteringTextInputFormatter.digitsOnly;
   static final _decimalFormatter = _OneDecimalTextInputFormatter();
@@ -2767,9 +2910,9 @@ class _VitalsWorkflowState extends State<_VitalsWorkflow> {
             ),
             const SizedBox(height: 16),
             FilledButton.icon(
-              onPressed: _saveVitals,
+              onPressed: _savingVitals ? null : _saveVitals,
               icon: const Icon(Icons.save_outlined),
-              label: const Text('Save vitals'),
+              label: Text(_savingVitals ? 'Saving vitals' : 'Save vitals'),
             ),
             if (_recordedAt != null) ...[
               const SizedBox(height: 12),
@@ -2802,15 +2945,47 @@ class _VitalsWorkflowState extends State<_VitalsWorkflow> {
     return null;
   }
 
-  void _saveVitals() {
+  Future<void> _saveVitals() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
-    setState(() => _recordedAt = DateTime.now());
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Vitals recorded at ${_timeLabel(_recordedAt!)}')),
-    );
+    final recordedAt = DateTime.now();
+    setState(() => _savingVitals = true);
+
+    try {
+      await widget.onRecordVitals(
+        VisitVitalsRecord(
+          bpSystolic: int.parse(_systolicController.text),
+          bpDiastolic: int.parse(_diastolicController.text),
+          pulse: int.parse(_pulseController.text),
+          temperature: double.parse(_temperatureController.text),
+          bloodOxygen: int.parse(_oxygenController.text),
+          recordedAt: recordedAt,
+        ),
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() => _recordedAt = recordedAt);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Vitals recorded at ${_timeLabel(recordedAt)}')),
+      );
+    } on VisitWorkflowException catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.message)));
+    } finally {
+      if (mounted) {
+        setState(() => _savingVitals = false);
+      }
+    }
   }
 }
 
@@ -2953,7 +3128,15 @@ class _TaskStateChip extends StatelessWidget {
 }
 
 class _ObservationsSection extends StatefulWidget {
-  const _ObservationsSection();
+  const _ObservationsSection({
+    required this.initialNotes,
+    required this.onRecordNotes,
+    required this.onRecordEvidence,
+  });
+
+  final String? initialNotes;
+  final Future<void> Function(String notes) onRecordNotes;
+  final Future<void> Function(VisitEvidenceRecord evidence) onRecordEvidence;
 
   @override
   State<_ObservationsSection> createState() => _ObservationsSectionState();
@@ -2961,7 +3144,31 @@ class _ObservationsSection extends StatefulWidget {
 
 class _ObservationsSectionState extends State<_ObservationsSection> {
   final ImagePicker _imagePicker = ImagePicker();
+  late final TextEditingController _notesController;
   XFile? _selectedPhoto;
+  bool _savingNotes = false;
+  bool _savingEvidence = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _notesController = TextEditingController(text: widget.initialNotes ?? '');
+  }
+
+  @override
+  void didUpdateWidget(covariant _ObservationsSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialNotes != widget.initialNotes &&
+        widget.initialNotes != _notesController.text) {
+      _notesController.text = widget.initialNotes ?? '';
+    }
+  }
+
+  @override
+  void dispose() {
+    _notesController.dispose();
+    super.dispose();
+  }
 
   Future<void> _pickPhoto(ImageSource source) async {
     try {
@@ -2972,6 +3179,16 @@ class _ObservationsSectionState extends State<_ObservationsSection> {
       );
 
       if (!mounted || photo == null) {
+        return;
+      }
+
+      final saved = await _recordPhotoEvidence(photo);
+
+      if (!mounted) {
+        return;
+      }
+
+      if (!saved) {
         return;
       }
 
@@ -3029,12 +3246,78 @@ class _ObservationsSectionState extends State<_ObservationsSection> {
     );
   }
 
+  Future<void> _saveNotes() async {
+    final notes = _notesController.text.trim();
+    if (notes.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Add a short visit note first.')),
+      );
+      return;
+    }
+
+    setState(() => _savingNotes = true);
+    try {
+      await widget.onRecordNotes(notes);
+
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Visit notes saved.')));
+    } on VisitWorkflowException catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.message)));
+    } finally {
+      if (mounted) {
+        setState(() => _savingNotes = false);
+      }
+    }
+  }
+
+  Future<bool> _recordPhotoEvidence(XFile photo) async {
+    setState(() => _savingEvidence = true);
+
+    try {
+      await widget.onRecordEvidence(
+        VisitEvidenceRecord(
+          evidenceType: 'photo',
+          label: 'Visit observation photo',
+          fileName: photo.name,
+          metadata: {'source': 'observations'},
+          capturedAt: DateTime.now(),
+        ),
+      );
+      return true;
+    } on VisitWorkflowException catch (error) {
+      if (!mounted) {
+        return false;
+      }
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.message)));
+      return false;
+    } finally {
+      if (mounted) {
+        setState(() => _savingEvidence = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return _CareSection(
       title: 'Observations',
       children: [
         TextField(
+          controller: _notesController,
           minLines: 3,
           maxLines: 4,
           decoration: InputDecoration(
@@ -3044,15 +3327,25 @@ class _ObservationsSectionState extends State<_ObservationsSection> {
           ),
         ),
         const SizedBox(height: 12),
+        FilledButton.icon(
+          onPressed: _savingNotes ? null : _saveNotes,
+          icon: const Icon(Icons.save_outlined),
+          label: Text(_savingNotes ? 'Saving notes' : 'Save notes'),
+        ),
+        const SizedBox(height: 12),
         if (_selectedPhoto != null) ...[
           _AttachedPhotoSummary(photo: _selectedPhoto!),
           const SizedBox(height: 12),
         ],
         OutlinedButton.icon(
-          onPressed: _showPhotoOptions,
+          onPressed: _savingEvidence ? null : _showPhotoOptions,
           icon: const Icon(Icons.photo_camera_outlined),
           label: Text(
-            _selectedPhoto == null ? 'Upload photo' : 'Replace photo',
+            _savingEvidence
+                ? 'Saving evidence'
+                : _selectedPhoto == null
+                ? 'Upload photo'
+                : 'Replace photo',
           ),
           style: OutlinedButton.styleFrom(
             alignment: Alignment.centerLeft,
@@ -3106,11 +3399,13 @@ class _AuditEvidencePanel extends StatelessWidget {
     required this.checkInTime,
     required this.checkOutTime,
     required this.auditEvidence,
+    required this.onRecordEvidence,
   });
 
   final String? checkInTime;
   final String? checkOutTime;
   final List<_AuditEvidence> auditEvidence;
+  final Future<void> Function(VisitEvidenceRecord evidence) onRecordEvidence;
 
   @override
   Widget build(BuildContext context) {
@@ -3139,7 +3434,7 @@ class _AuditEvidencePanel extends StatelessWidget {
           const SizedBox(height: 12),
           for (final row in rows) _AuditEvidenceRow(evidence: row),
           const SizedBox(height: 12),
-          const _SignaturePrompt(),
+          _SignaturePrompt(onRecordEvidence: onRecordEvidence),
         ],
       ),
     );
@@ -3182,7 +3477,9 @@ class _AuditEvidenceRow extends StatelessWidget {
 }
 
 class _SignaturePrompt extends StatefulWidget {
-  const _SignaturePrompt();
+  const _SignaturePrompt({required this.onRecordEvidence});
+
+  final Future<void> Function(VisitEvidenceRecord evidence) onRecordEvidence;
 
   @override
   State<_SignaturePrompt> createState() => _SignaturePromptState();
@@ -3190,14 +3487,17 @@ class _SignaturePrompt extends StatefulWidget {
 
 class _SignaturePromptState extends State<_SignaturePrompt> {
   String? _capturedAt;
+  bool _savingSignature = false;
 
   @override
   Widget build(BuildContext context) {
     return OutlinedButton.icon(
-      onPressed: _captureSignature,
+      onPressed: _savingSignature ? null : _captureSignature,
       icon: Icon(_capturedAt == null ? Icons.draw_outlined : Icons.verified),
       label: Text(
-        _capturedAt == null
+        _savingSignature
+            ? 'Saving signature'
+            : _capturedAt == null
             ? 'Capture signature'
             : 'Signature captured $_capturedAt',
       ),
@@ -3224,6 +3524,36 @@ class _SignaturePromptState extends State<_SignaturePrompt> {
     }
 
     final now = DateTime.now();
+    setState(() => _savingSignature = true);
+
+    try {
+      await widget.onRecordEvidence(
+        VisitEvidenceRecord(
+          evidenceType: 'signature',
+          label: 'Client signature',
+          metadata: {'source': 'visit_audit_evidence'},
+          capturedAt: now,
+        ),
+      );
+    } on VisitWorkflowException catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.message)));
+      return;
+    } finally {
+      if (mounted) {
+        setState(() => _savingSignature = false);
+      }
+    }
+
+    if (!mounted) {
+      return;
+    }
+
     setState(() {
       _capturedAt = '${_twoDigits(now.hour)}:${_twoDigits(now.minute)}';
     });
@@ -3529,9 +3859,10 @@ class _VisitAlertsState extends State<_VisitAlerts> {
     }
 
     try {
+      final visit = await _todayVisit;
       final receipt = await widget.visitWorkflow.reportIssue(
         session: widget.session,
-        issue: report,
+        issue: report.withVisitId(visit?.id),
       );
 
       if (!context.mounted) {
@@ -3784,11 +4115,33 @@ class _TimelineVisitRow extends StatelessWidget {
   }
 }
 
-class _QuickActions extends StatelessWidget {
+class _QuickActions extends StatefulWidget {
   const _QuickActions({required this.session, required this.visitWorkflow});
 
   final CarerSession session;
   final VisitWorkflowPort visitWorkflow;
+
+  @override
+  State<_QuickActions> createState() => _QuickActionsState();
+}
+
+class _QuickActionsState extends State<_QuickActions> {
+  late Future<VisitWorkflow?> _todayVisit;
+
+  @override
+  void initState() {
+    super.initState();
+    _todayVisit = widget.visitWorkflow.todayVisitForCarer(widget.session);
+  }
+
+  @override
+  void didUpdateWidget(covariant _QuickActions oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.session != widget.session ||
+        oldWidget.visitWorkflow != widget.visitWorkflow) {
+      _todayVisit = widget.visitWorkflow.todayVisitForCarer(widget.session);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -3816,9 +4169,10 @@ class _QuickActions extends StatelessWidget {
     }
 
     try {
-      final receipt = await visitWorkflow.reportIssue(
-        session: session,
-        issue: result,
+      final visit = await _todayVisit;
+      final receipt = await widget.visitWorkflow.reportIssue(
+        session: widget.session,
+        issue: result.withVisitId(visit?.id),
       );
 
       if (!context.mounted) {

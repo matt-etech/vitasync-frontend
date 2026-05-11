@@ -17,6 +17,7 @@ class VisitWorkflow {
     this.checkOutTime,
     this.allergies,
     this.criticalInformation,
+    this.notes,
   });
 
   final int id;
@@ -33,6 +34,7 @@ class VisitWorkflow {
   final String? checkOutTime;
   final String? allergies;
   final String? criticalInformation;
+  final String? notes;
   final List<CarePlanTask> tasks;
 
   factory VisitWorkflow.fromJson(Map<String, dynamic> json) {
@@ -72,6 +74,7 @@ class VisitWorkflow {
             'critical_information',
             'critical_notes',
           ]),
+      notes: _textValue(json['notes']),
       tasks: [
         for (final task in tasks)
           CarePlanTask.fromJson(task as Map<String, dynamic>),

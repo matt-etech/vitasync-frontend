@@ -49,6 +49,71 @@ class VisitWorkflowService implements VisitWorkflowPort {
   }
 
   @override
+  Future<VisitWorkflow> recordVisitNotes({
+    required CarerSession session,
+    required int visitId,
+    required String notes,
+  }) async {
+    final request = await html.HttpRequest.request(
+      _baseUri.replace(path: '/api/carer/visits/$visitId/notes').toString(),
+      method: 'POST',
+      requestHeaders: const {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      sendData: jsonEncode({
+        'carer_id': session.id,
+        'notes': notes,
+        'recorded_at': DateTime.now().toIso8601String(),
+      }),
+    );
+
+    return _parseVisit(
+      statusCode: request.status ?? 0,
+      body: request.responseText ?? '',
+    );
+  }
+
+  @override
+  Future<VisitWorkflow> recordVisitTask({
+    required CarerSession session,
+    required int visitId,
+    required VisitTaskRecord task,
+  }) {
+    return _postVisitRecord(
+      visitId: visitId,
+      path: 'tasks',
+      payload: task.toJson(carerId: session.id),
+    );
+  }
+
+  @override
+  Future<VisitWorkflow> recordVisitVitals({
+    required CarerSession session,
+    required int visitId,
+    required VisitVitalsRecord vitals,
+  }) {
+    return _postVisitRecord(
+      visitId: visitId,
+      path: 'vitals',
+      payload: vitals.toJson(carerId: session.id),
+    );
+  }
+
+  @override
+  Future<VisitWorkflow> recordVisitEvidence({
+    required CarerSession session,
+    required int visitId,
+    required VisitEvidenceRecord evidence,
+  }) {
+    return _postVisitRecord(
+      visitId: visitId,
+      path: 'evidence',
+      payload: evidence.toJson(carerId: session.id),
+    );
+  }
+
+  @override
   Future<VisitWorkflow> recordLocationEvent({
     required CarerSession session,
     required int visitId,
@@ -106,6 +171,27 @@ class VisitWorkflowService implements VisitWorkflowPort {
         'Content-Type': 'application/json',
       },
       sendData: jsonEncode({'carer_id': session.id}),
+    );
+
+    return _parseVisit(
+      statusCode: request.status ?? 0,
+      body: request.responseText ?? '',
+    );
+  }
+
+  Future<VisitWorkflow> _postVisitRecord({
+    required int visitId,
+    required String path,
+    required Map<String, dynamic> payload,
+  }) async {
+    final request = await html.HttpRequest.request(
+      _baseUri.replace(path: '/api/carer/visits/$visitId/$path').toString(),
+      method: 'POST',
+      requestHeaders: const {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      sendData: jsonEncode(payload),
     );
 
     return _parseVisit(
