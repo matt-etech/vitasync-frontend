@@ -84,20 +84,14 @@ CarerSession _parseLoginResponse({
   }
 
   if (statusCode == 422) {
-    throw const CarerAuthException(
-      'Email or password was not recognised for a carer account.',
-    );
+    throw const CarerAuthException('incorrect user or password');
   }
 
   if (statusCode == 403) {
-    throw const CarerAuthException(
-      'This login is only available to active carers.',
-    );
+    throw const CarerAuthException('incorrect user or password');
   }
 
-  throw const CarerAuthException(
-    'Login could not be completed. Check the backend connection and try again.',
-  );
+  throw const CarerAuthException('incorrect user or password');
 }
 
 void _parsePasswordChangeResponse({

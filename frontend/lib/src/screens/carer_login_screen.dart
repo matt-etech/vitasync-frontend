@@ -1,19 +1,24 @@
 import 'package:flutter/material.dart';
 
-
-import '../models/carer_session.dart';
 import '../config/app_config.dart';
+import '../models/carer_session.dart';
+import '../models/family_session.dart';
 import '../services/carer_auth_contract.dart';
+import '../services/family_access_contract.dart';
 
 class CarerLoginScreen extends StatefulWidget {
   const CarerLoginScreen({
     required this.authService,
+    required this.familyAccess,
     required this.onAuthenticated,
+    required this.onFamilyAuthenticated,
     super.key,
   });
 
   final CarerAuthPort authService;
+  final FamilyAccessPort familyAccess;
   final ValueChanged<CarerSession> onAuthenticated;
+  final ValueChanged<FamilySession> onFamilyAuthenticated;
 
   @override
   State<CarerLoginScreen> createState() => _CarerLoginScreenState();
@@ -23,6 +28,7 @@ class _CarerLoginScreenState extends State<CarerLoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  var _accessType = _LoginAccessType.carer;
   var _isSubmitting = false;
   String? _errorMessage;
 
@@ -44,21 +50,37 @@ class _CarerLoginScreenState extends State<CarerLoginScreen> {
     });
 
     try {
-      final session = await widget.authService.login(
-        email: _emailController.text,
-        password: _passwordController.text,
-      );
+      if (_accessType == _LoginAccessType.carer) {
+        final session = await widget.authService.login(
+          email: _emailController.text,
+          password: _passwordController.text,
+        );
 
-      if (!mounted) {
-        return;
+        if (!mounted) {
+          return;
+        }
+
+        widget.onAuthenticated(session);
+      } else {
+        final familySession = await widget.familyAccess.login(
+          email: _emailController.text,
+          password: _passwordController.text,
+        );
+
+        if (!mounted) {
+          return;
+        }
+
+        widget.onFamilyAuthenticated(familySession);
       }
-
-      widget.onAuthenticated(session);
     } on CarerAuthException catch (error) {
+      setState(() => _errorMessage = error.message);
+    } on FamilyAccessException catch (error) {
       setState(() => _errorMessage = error.message);
     } catch (_) {
       setState(() {
-        _errorMessage = 'Backend unavailable at ${AppConfig.backendBaseUrl}. Check the service is running and reachable.';
+        _errorMessage =
+            'Backend unavailable at ${AppConfig.backendBaseUrl}. Check the service is running and reachable.';
       });
     } finally {
       if (mounted) {
@@ -83,6 +105,44 @@ class _CarerLoginScreenState extends State<CarerLoginScreen> {
                   children: [
                     const _LoginHeader(),
                     const SizedBox(height: 28),
+                    SegmentedButton<_LoginAccessType>(
+                      segments: const [
+                        ButtonSegment<_LoginAccessType>(
+                          value: _LoginAccessType.carer,
+                          icon: Icon(Icons.badge_outlined),
+                          label: Text('Carer'),
+                        ),
+                        ButtonSegment<_LoginAccessType>(
+                          value: _LoginAccessType.family,
+                          icon: Icon(Icons.family_restroom_outlined),
+                          label: Text('Family'),
+                        ),
+                      ],
+                      selected: {_accessType},
+                      onSelectionChanged: _isSubmitting
+                          ? null
+                          : (selection) {
+                              setState(() {
+                                _accessType = selection.first;
+                                _errorMessage = null;
+                              });
+                            },
+                      style: ButtonStyle(
+                        foregroundColor: WidgetStateProperty.resolveWith<Color>(
+                          (states) {
+                            if (states.contains(WidgetState.selected)) {
+                              return const Color(0xFF0F766E);
+                            }
+
+                            return const Color(0xFF40525A);
+                          },
+                        ),
+                        side: WidgetStateProperty.all(
+                          const BorderSide(color: Color(0xFFB7C2CA)),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
                     if (_errorMessage != null) ...[
                       _AlertBanner(message: _errorMessage!),
                       const SizedBox(height: 16),
@@ -99,7 +159,7 @@ class _CarerLoginScreenState extends State<CarerLoginScreen> {
                       validator: (value) {
                         final email = value?.trim() ?? '';
                         if (email.isEmpty) {
-                          return 'Enter your carer email address.';
+                          return 'Enter your email address.';
                         }
                         if (!email.contains('@')) {
                           return 'Enter a valid email address.';
@@ -134,7 +194,11 @@ class _CarerLoginScreenState extends State<CarerLoginScreen> {
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
                           : const Icon(Icons.login),
-                      label: Text(_isSubmitting ? 'Checking access' : 'Sign in as carer'),
+                      label: Text(
+                        _isSubmitting
+                            ? 'Checking access'
+                            : _accessType.submitLabel,
+                      ),
                     ),
                   ],
                 ),
@@ -144,6 +208,19 @@ class _CarerLoginScreenState extends State<CarerLoginScreen> {
         ),
       ),
     );
+  }
+}
+
+enum _LoginAccessType { carer, family }
+
+extension _LoginAccessTypePresentation on _LoginAccessType {
+  String get submitLabel {
+    switch (this) {
+      case _LoginAccessType.carer:
+        return 'Sign in as carer';
+      case _LoginAccessType.family:
+        return 'Sign in as family';
+    }
   }
 }
 
@@ -164,13 +241,16 @@ class _LoginHeader extends StatelessWidget {
             color: Theme.of(context).colorScheme.primary,
             borderRadius: BorderRadius.circular(8),
           ),
-          child: const Icon(Icons.health_and_safety_outlined, color: Colors.white),
+          child: const Icon(
+            Icons.health_and_safety_outlined,
+            color: Colors.white,
+          ),
         ),
         const SizedBox(height: 20),
-        Text('VitaSync Carer Login', style: textTheme.headlineMedium),
+        Text('VitaSync Login', style: textTheme.headlineMedium),
         const SizedBox(height: 8),
         Text(
-          'Use your active carer account to access assigned care work.',
+          'Use the access type assigned by the care team.',
           style: textTheme.bodyLarge,
         ),
       ],

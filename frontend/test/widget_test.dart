@@ -4,11 +4,14 @@ import 'package:vitasync_health/src/app.dart';
 import 'package:vitasync_health/src/models/care_client.dart';
 import 'package:vitasync_health/src/models/care_plan_task.dart';
 import 'package:vitasync_health/src/models/carer_session.dart';
+import 'package:vitasync_health/src/models/family_portal_summary.dart';
+import 'package:vitasync_health/src/models/family_session.dart';
 import 'package:vitasync_health/src/models/scheduled_visit.dart';
 import 'package:vitasync_health/src/models/visit_workflow.dart';
 import 'package:vitasync_health/src/services/care_plan_task_contract.dart';
 import 'package:vitasync_health/src/services/carer_auth_contract.dart';
 import 'package:vitasync_health/src/services/client_directory_contract.dart';
+import 'package:vitasync_health/src/services/family_access_contract.dart';
 import 'package:vitasync_health/src/services/visit_schedule_contract.dart';
 import 'package:vitasync_health/src/services/visit_workflow_contract.dart';
 
@@ -22,10 +25,13 @@ void main() {
         carePlanTasks: _SuccessfulCarePlanTasks(),
         visitSchedule: _SuccessfulVisitSchedule(),
         visitWorkflow: _SuccessfulVisitWorkflow(),
+        familyAccess: _SuccessfulFamilyAccess(),
       ),
     );
 
-    expect(find.text('VitaSync Carer Login'), findsOneWidget);
+    expect(find.text('VitaSync Login'), findsOneWidget);
+    expect(find.text('Carer'), findsOneWidget);
+    expect(find.text('Family'), findsOneWidget);
     expect(find.text('Sign in as carer'), findsOneWidget);
 
     await tester.enterText(
@@ -156,6 +162,7 @@ void main() {
         carePlanTasks: _SuccessfulCarePlanTasks(),
         visitSchedule: _SuccessfulVisitSchedule(),
         visitWorkflow: _SuccessfulVisitWorkflow(),
+        familyAccess: _SuccessfulFamilyAccess(),
       ),
     );
 
@@ -218,6 +225,7 @@ void main() {
         carePlanTasks: _SuccessfulCarePlanTasks(),
         visitSchedule: _SuccessfulVisitSchedule(),
         visitWorkflow: _SuccessfulVisitWorkflow(),
+        familyAccess: _SuccessfulFamilyAccess(),
       ),
     );
 
@@ -285,6 +293,7 @@ void main() {
         carePlanTasks: _SuccessfulCarePlanTasks(),
         visitSchedule: _SuccessfulVisitSchedule(),
         visitWorkflow: _SuccessfulVisitWorkflow(),
+        familyAccess: _SuccessfulFamilyAccess(),
       ),
     );
 
@@ -325,6 +334,7 @@ void main() {
         carePlanTasks: _SuccessfulCarePlanTasks(),
         visitSchedule: _SuccessfulVisitSchedule(),
         visitWorkflow: _SuccessfulVisitWorkflow(),
+        familyAccess: _SuccessfulFamilyAccess(),
       ),
     );
 
@@ -382,7 +392,7 @@ void main() {
     expect(find.text('Emergency escalation'), findsOneWidget);
   });
 
-  testWidgets('login errors are shown near the form', (tester) async {
+  testWidgets('incorrect login errors are shown near the form', (tester) async {
     await tester.pumpWidget(
       VitaSyncCarerApp(
         authService: _FailingCarerAuthService(),
@@ -390,6 +400,7 @@ void main() {
         carePlanTasks: _SuccessfulCarePlanTasks(),
         visitSchedule: _SuccessfulVisitSchedule(),
         visitWorkflow: _SuccessfulVisitWorkflow(),
+        familyAccess: _SuccessfulFamilyAccess(),
       ),
     );
 
@@ -401,10 +412,40 @@ void main() {
     await tester.tap(find.byIcon(Icons.login));
     await tester.pumpAndSettle();
 
-    expect(
-      find.text('This login is only available to active carers.'),
-      findsOneWidget,
+    expect(find.text('incorrect user or password'), findsOneWidget);
+  });
+
+  testWidgets('family member can sign in and see shared portal', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      VitaSyncCarerApp(
+        authService: _UnexpectedCarerAuthService(),
+        clientDirectory: _SuccessfulClientDirectory(),
+        carePlanTasks: _SuccessfulCarePlanTasks(),
+        visitSchedule: _SuccessfulVisitSchedule(),
+        visitWorkflow: _SuccessfulVisitWorkflow(),
+        familyAccess: _SuccessfulFamilyAccess(),
+      ),
     );
+
+    await tester.tap(find.text('Family'));
+    await tester.pumpAndSettle();
+    expect(find.text('Sign in as family'), findsOneWidget);
+
+    await tester.enterText(
+      find.byType(TextFormField).at(0),
+      'father@vitasync.local',
+    );
+    await tester.enterText(find.byType(TextFormField).at(1), 'password');
+    await tester.tap(find.byIcon(Icons.login));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Family portal'), findsOneWidget);
+    expect(find.text('Thabisile Mahlanza'), findsOneWidget);
+    expect(find.text('Care plan summary'), findsOneWidget);
+    expect(find.text('Appointments'), findsOneWidget);
+    expect(find.text('Visit notes summary'), findsOneWidget);
   });
 }
 
@@ -443,9 +484,7 @@ class _FailingCarerAuthService implements CarerAuthPort {
     required String email,
     required String password,
   }) async {
-    throw const CarerAuthException(
-      'This login is only available to active carers.',
-    );
+    throw const CarerAuthException('incorrect user or password');
   }
 
   @override
@@ -456,6 +495,78 @@ class _FailingCarerAuthService implements CarerAuthPort {
     required String newPasswordConfirmation,
   }) async {
     throw const CarerAuthException('Password could not be changed.');
+  }
+}
+
+class _UnexpectedCarerAuthService implements CarerAuthPort {
+  @override
+  Future<CarerSession> login({
+    required String email,
+    required String password,
+  }) async {
+    throw const CarerAuthException('Carer login should not be used.');
+  }
+
+  @override
+  Future<void> changePassword({
+    required CarerSession session,
+    required String currentPassword,
+    required String newPassword,
+    required String newPasswordConfirmation,
+  }) async {}
+}
+
+class _SuccessfulFamilyAccess implements FamilyAccessPort {
+  @override
+  Future<FamilySession> login({
+    required String email,
+    required String password,
+  }) async {
+    return const FamilySession(
+      id: 2,
+      name: 'Bokang Mahlanza',
+      email: 'father@vitasync.local',
+      clientId: 1,
+      clientName: 'Thabisile Mahlanza',
+      homeName: 'Default Home',
+      permissions: FamilyAccessPermissions(
+        canViewCareUpdates: true,
+        canViewMedication: false,
+        canViewInvoices: false,
+        canReceiveIncidentAlerts: false,
+        canViewAppointments: true,
+        canViewVisits: true,
+        canUploadDocuments: false,
+        canViewStaffMessages: false,
+        canViewSharedDocuments: false,
+        canViewSensitiveDocuments: false,
+        canViewSafeguarding: false,
+      ),
+    );
+  }
+
+  @override
+  Future<FamilyPortalSummary> portalSummary(FamilySession session) async {
+    return const FamilyPortalSummary(
+      client: FamilyClientProfile(
+        id: 1,
+        name: 'Thabisile Mahlanza',
+        status: 'active',
+        homeName: 'Default Home',
+      ),
+      permissions: {'can_view_care_updates': true},
+      carePlanSummary: {
+        'title': 'Morning support plan',
+        'care_goals': 'Stay safe at home.',
+      },
+      visitNotesSummary: [
+        {'summary': 'Settled and supported with breakfast.'},
+      ],
+      incidentNotifications: [],
+      appointments: [
+        {'title': 'Morning visit'},
+      ],
+    );
   }
 }
 
