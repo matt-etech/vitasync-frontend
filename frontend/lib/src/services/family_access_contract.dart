@@ -7,7 +7,17 @@ abstract class FamilyAccessPort {
     required String password,
   });
 
-  Future<FamilyPortalSummary> portalSummary(FamilySession session);
+  Future<FamilyPortalSummary> portalSummary(
+    FamilySession session, {
+    int? clientId,
+  });
+
+  Future<void> changePassword({
+    required FamilySession session,
+    required String currentPassword,
+    required String newPassword,
+    required String newPasswordConfirmation,
+  });
 }
 
 class FamilyAccessException implements Exception {

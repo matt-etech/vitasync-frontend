@@ -6,6 +6,7 @@ class FamilySession {
     required this.clientId,
     required this.clientName,
     required this.permissions,
+    this.clients = const [],
     this.relationship,
     this.homeName,
   });
@@ -18,6 +19,7 @@ class FamilySession {
   final String? relationship;
   final String? homeName;
   final FamilyAccessPermissions permissions;
+  final List<FamilySessionClient> clients;
 
   factory FamilySession.fromJson(Map<String, dynamic> json) {
     final member = json['family_member'] as Map<String, dynamic>? ?? json;
@@ -31,11 +33,54 @@ class FamilySession {
       clientId: (client['id'] as num).toInt(),
       clientName: client['name'] as String,
       homeName: client['home_name'] as String?,
+      clients: _clientsFromJson(member['clients'], client),
       permissions: FamilyAccessPermissions.fromJson(
         member['permissions'] as Map<String, dynamic>? ?? const {},
       ),
     );
   }
+}
+
+class FamilySessionClient {
+  const FamilySessionClient({
+    required this.id,
+    required this.name,
+    this.homeName,
+  });
+
+  final int id;
+  final String name;
+  final String? homeName;
+
+  factory FamilySessionClient.fromJson(Map<String, dynamic> json) {
+    return FamilySessionClient(
+      id: (json['id'] as num).toInt(),
+      name: json['name'] as String,
+      homeName: json['home_name'] as String?,
+    );
+  }
+}
+
+List<FamilySessionClient> _clientsFromJson(
+  Object? value,
+  Map<String, dynamic> fallbackClient,
+) {
+  final rows = value as List<dynamic>? ?? const [];
+
+  if (rows.isEmpty) {
+    return [
+      FamilySessionClient(
+        id: (fallbackClient['id'] as num).toInt(),
+        name: fallbackClient['name'] as String,
+        homeName: fallbackClient['home_name'] as String?,
+      ),
+    ];
+  }
+
+  return [
+    for (final row in rows)
+      FamilySessionClient.fromJson(row as Map<String, dynamic>),
+  ];
 }
 
 class FamilyAccessPermissions {

@@ -38,12 +38,18 @@ class FamilyAccessService implements FamilyAccessPort {
   }
 
   @override
-  Future<FamilyPortalSummary> portalSummary(FamilySession session) async {
+  Future<FamilyPortalSummary> portalSummary(
+    FamilySession session, {
+    int? clientId,
+  }) async {
     final request = await html.HttpRequest.request(
       _baseUri
           .replace(
             path: '/api/family/portal',
-            queryParameters: {'family_member_id': session.id.toString()},
+            queryParameters: {
+              'family_member_id': session.id.toString(),
+              if (clientId != null) 'client_id': clientId.toString(),
+            },
           )
           .toString(),
       method: 'GET',
@@ -58,6 +64,37 @@ class FamilyAccessService implements FamilyAccessPort {
 
     throw const FamilyAccessException(
       'Family portal could not be loaded. Check the backend connection and try again.',
+    );
+  }
+
+  @override
+  Future<void> changePassword({
+    required FamilySession session,
+    required String currentPassword,
+    required String newPassword,
+    required String newPasswordConfirmation,
+  }) async {
+    final request = await html.HttpRequest.request(
+      _baseUri.resolve('/api/family/change-password').toString(),
+      method: 'POST',
+      requestHeaders: const {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      sendData: jsonEncode({
+        'family_member_id': session.id,
+        'current_password': currentPassword,
+        'password': newPassword,
+        'password_confirmation': newPasswordConfirmation,
+      }),
+    );
+
+    if (request.status == 200) {
+      return;
+    }
+
+    throw const FamilyAccessException(
+      'Password could not be changed. Check the current password and try again.',
     );
   }
 }

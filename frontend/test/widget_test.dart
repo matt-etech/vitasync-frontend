@@ -441,11 +441,64 @@ void main() {
     await tester.tap(find.byIcon(Icons.login));
     await tester.pumpAndSettle();
 
-    expect(find.text('Family portal'), findsOneWidget);
+    expect(find.text('Overview'), findsWidgets);
+    expect(find.text('Care'), findsOneWidget);
+    expect(find.text('Visits'), findsOneWidget);
+    expect(find.text('Alerts'), findsOneWidget);
+    expect(find.text('My Profile'), findsNothing);
+    expect(find.text('Selected client'), findsOneWidget);
+    expect(find.text('Thabisile Mahlanza - Default Home'), findsOneWidget);
     expect(find.text('Thabisile Mahlanza'), findsOneWidget);
+
+    await tester.tap(find.text('Thabisile Mahlanza - Default Home'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Asha Patel - Oak House').last);
+    await tester.pumpAndSettle();
+    expect(find.text('Asha Patel'), findsOneWidget);
+    expect(find.text('Status: active'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Care'));
+    await tester.pumpAndSettle();
+    expect(find.text('Medication support'), findsOneWidget);
+    expect(find.text('Latest medication record'), findsOneWidget);
     expect(find.text('Care plan summary'), findsOneWidget);
-    expect(find.text('Appointments'), findsOneWidget);
-    expect(find.text('Visit notes summary'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Visits'));
+    await tester.pumpAndSettle();
+    expect(find.text('Visit calendar'), findsOneWidget);
+    expect(find.text('Upcoming visits'), findsOneWidget);
+    expect(find.text('Past visits'), findsOneWidget);
+    expect(find.text('Carer'), findsWidgets);
+
+    await tester.tap(find.byTooltip('Alerts'));
+    await tester.pumpAndSettle();
+    expect(find.text('Incident notifications'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('My Profile'));
+    await tester.pumpAndSettle();
+    expect(find.text('Member information'), findsOneWidget);
+    expect(find.text('Bokang Mahlanza'), findsOneWidget);
+    expect(find.text('father@vitasync.local'), findsOneWidget);
+    expect(find.text('Change password'), findsOneWidget);
+
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Current password'),
+      'password',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'New password'),
+      'Newpass1',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Confirm new password'),
+      'Newpass1',
+    );
+    tester.testTextInput.hide();
+    await tester.ensureVisible(find.text('Save password'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save password'));
+    await tester.pump();
+    expect(find.text('Password changed.'), findsOneWidget);
   });
 }
 
@@ -517,6 +570,8 @@ class _UnexpectedCarerAuthService implements CarerAuthPort {
 }
 
 class _SuccessfulFamilyAccess implements FamilyAccessPort {
+  bool passwordChanged = false;
+
   @override
   Future<FamilySession> login({
     required String email,
@@ -529,9 +584,17 @@ class _SuccessfulFamilyAccess implements FamilyAccessPort {
       clientId: 1,
       clientName: 'Thabisile Mahlanza',
       homeName: 'Default Home',
+      clients: [
+        FamilySessionClient(
+          id: 1,
+          name: 'Thabisile Mahlanza',
+          homeName: 'Default Home',
+        ),
+        FamilySessionClient(id: 10, name: 'Asha Patel', homeName: 'Oak House'),
+      ],
       permissions: FamilyAccessPermissions(
         canViewCareUpdates: true,
-        canViewMedication: false,
+        canViewMedication: true,
         canViewInvoices: false,
         canReceiveIncidentAlerts: false,
         canViewAppointments: true,
@@ -546,27 +609,90 @@ class _SuccessfulFamilyAccess implements FamilyAccessPort {
   }
 
   @override
-  Future<FamilyPortalSummary> portalSummary(FamilySession session) async {
-    return const FamilyPortalSummary(
-      client: FamilyClientProfile(
-        id: 1,
-        name: 'Thabisile Mahlanza',
-        status: 'active',
-        homeName: 'Default Home',
-      ),
+  Future<FamilyPortalSummary> portalSummary(
+    FamilySession session, {
+    int? clientId,
+  }) async {
+    final selectedClient = clientId == 10
+        ? const FamilyClientProfile(
+            id: 10,
+            name: 'Asha Patel',
+            status: 'active',
+            homeName: 'Oak House',
+          )
+        : const FamilyClientProfile(
+            id: 1,
+            name: 'Thabisile Mahlanza',
+            status: 'active',
+            homeName: 'Default Home',
+          );
+
+    return FamilyPortalSummary(
+      client: selectedClient,
       permissions: {'can_view_care_updates': true},
-      carePlanSummary: {
+      carePlanSummary: const {
         'title': 'Morning support plan',
         'care_goals': 'Stay safe at home.',
       },
-      visitNotesSummary: [
+      upcomingVisits: const [
+        {
+          'visit_id': 41,
+          'title': 'Evening medication visit',
+          'scheduled_start_at': '2026-05-20T18:00:00',
+          'scheduled_end_at': '2026-05-20T18:30:00',
+          'status': 'scheduled',
+          'assigned_worker_name': 'Default Carer',
+          'did_carer_attend': false,
+        },
+      ],
+      pastVisits: const [
+        {
+          'visit_id': 40,
+          'title': 'Morning medication visit',
+          'scheduled_start_at': '2026-05-14T08:00:00',
+          'scheduled_end_at': '2026-05-14T08:30:00',
+          'status': 'completed',
+          'assigned_worker_name': 'Default Carer',
+          'check_in_at': '2026-05-14T07:58:00',
+          'check_out_at': '2026-05-14T08:28:00',
+          'did_carer_attend': true,
+          'notes': 'Settled and supported with breakfast.',
+        },
+      ],
+      visitNotesSummary: const [
         {'summary': 'Settled and supported with breakfast.'},
       ],
-      incidentNotifications: [],
-      appointments: [
+      medicationSummary: const {
+        'support_needed': true,
+        'support_level': 'Administered by staff',
+        'care_plan_instructions': 'Follow MAR chart.',
+        'support_summary': 'Morning tablets.',
+      },
+      medicationRecords: const [
+        {
+          'visit_id': 40,
+          'title': 'Medication support',
+          'status': 'completed',
+          'completed_at': '2026-05-14T08:10:00',
+          'carer_name': 'Default Carer',
+          'detail': 'Medication given as planned.',
+        },
+      ],
+      incidentNotifications: const [],
+      appointments: const [
         {'title': 'Morning visit'},
       ],
     );
+  }
+
+  @override
+  Future<void> changePassword({
+    required FamilySession session,
+    required String currentPassword,
+    required String newPassword,
+    required String newPasswordConfirmation,
+  }) async {
+    passwordChanged = true;
   }
 }
 
